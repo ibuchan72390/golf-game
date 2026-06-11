@@ -19,7 +19,14 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:e2e
+      - run: npx playwright test e2e/playthrough.spec.ts
+      - name: Visual snapshots (hard gate once baselines exist)
+        run: |
+          if [ -d e2e/visual.spec.ts-snapshots ]; then
+            npx playwright test e2e/visual.spec.ts
+          else
+            echo "No baselines yet - run the 'Update visual snapshots' workflow to create them."
+          fi
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

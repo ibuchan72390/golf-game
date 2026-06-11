@@ -11,9 +11,9 @@
     "test:e2e": "playwright test"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "ibuchan72390",
+  "license": "MIT",
+  "description": "Web-based 3D golf game with deterministic physics and a low-poly cartoon style",
   "type": "module",
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.19.3",

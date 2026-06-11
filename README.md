@@ -19,3 +19,7 @@ Play it: `https://<username>.github.io/golf-game/`
 
 See `docs/superpowers/specs/2026-06-11-golf-game-design.md`. Load-bearing rule:
 `src/sim/` never imports DOM or Three.js, and never calls `Math.random()`.
+
+## License
+
+MIT — see `LICENSE`.
