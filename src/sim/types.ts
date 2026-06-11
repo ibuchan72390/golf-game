@@ -6,7 +6,7 @@ export interface ClubStats {
   maxSpeed: number;
   /** launch angle in degrees */
   launchDeg: number;
-  /** max yaw dispersion in radians at |contactError| = 1 */
+  /** yaw-dispersion scale in radians; deviation = contactError * accuracy * (0.5 + 0.5 * wobble) */
   accuracy: number;
 }
 

@@ -10,6 +10,12 @@ describe('launchVelocity', () => {
     expect(Math.hypot(v.x, v.y, v.z)).toBeCloseTo(CLUBS.driver.maxSpeed, 6);
   });
 
+  it('aimDir π/2 flies toward +X', () => {
+    const v = launchVelocity(CLUBS.driver, { club: 'driver', aimDir: Math.PI / 2, power: 1, contactError: 0 }, 1);
+    expect(v.x).toBeGreaterThan(5);
+    expect(v.z).toBeCloseTo(0, 6);
+  });
+
   it('power scales speed linearly', () => {
     const half = launchVelocity(CLUBS.iron7, { club: 'iron7', aimDir: 0, power: 0.5, contactError: 0 }, 1);
     expect(Math.hypot(half.x, half.y, half.z)).toBeCloseTo(CLUBS.iron7.maxSpeed * 0.5, 6);
