@@ -96,7 +96,7 @@ Starter bag (8): Driver, 3-Wood, 5-Iron, 7-Iron, 9-Iron, Pitching Wedge, Sand We
 
 Per-club stats: **Power** (max carry), **Accuracy** (sweet-spot width in swing UI), **Forgiveness** (mishit penalty falloff), **Spin** (greenside control). Skill points buy +1 stat levels at ramping costs.
 
-Skill points at round end: `basePoints × courseDifficulty × scoreMultiplier`. The generator computes each course's difficulty rating (length, hazard density, green sizes), so good scores on hard courses pay the most.
+Skill points at round end: `basePoints × courseDifficulty × scoreMultiplier`. The generator computes each course's difficulty rating (length, hazard density, green sizes), so good scores on hard courses pay the most. Exact curve tuning happens during implementation, behind unit tests.
 
 ### Situational play
 
@@ -116,7 +116,7 @@ Skill points at round end: `basePoints × courseDifficulty × scoreMultiplier`. 
 
 ### Course generation
 
-Seeded generator routes each hole as a curved corridor (tee → green) over a low-poly heightfield: fairway ribbon, rough margins, bunkers/water at strategic distances, trees as obstacles, sloped green. Par (3/4/5) derives from routing length. Courses are 9 or 18 holes with a sensible par mix. Generator also emits the difficulty rating. Invariants (enforced by tests): hole completable, par in 3–5, no hazard overlaps tee/green, rating in bounds.
+Seeded generator routes each hole as a curved corridor (tee → green) over a low-poly heightfield: fairway ribbon, rough margins, bunkers/water at strategic distances, trees as obstacles, sloped green. Par (3/4/5) derives from routing length. Courses are 9 holes in v1 with a sensible par mix; the CourseFile format supports 18. Generator also emits the difficulty rating. Invariants (enforced by tests): hole completable, par in 3–5, no hazard overlaps tee/green, rating in bounds.
 
 **Classic courses = curated generator output.** Generate many seeds, keep the best, hand-tune the CourseFile JSON, ship in repo. Homages to famous real holes (island greens, Road Hole-style doglegs) happen in the hand-tuning step under parody names — real course/tournament names are trademarked; layouts are fine.
 
@@ -154,7 +154,7 @@ One profile, versioned JSON: settings (input scheme, HUD mode), skill points, pe
 1. **Walking skeleton** — flat test hole, ball, 3-click swing, physics flight, hole-out detection; CI + Pages deploy live.
 2. **Real golf** — generator v1 (par-3s), surfaces/lies, putting mode, scoring, Arcade HUD.
 3. **Full round** — 9-hole courses (par 3–5), scorecard, skill points, club upgrades, saves.
-4. **Polish + reach** — drag-back input, Sim HUD, settings screen, first curated classic course, iPad/touch refinement pass.
+4. **Polish + reach** — drag-back input, Sim HUD, settings screen, first curated classic course, basic SFX (ball strike, hole-out), iPad/touch refinement pass.
 
 Each milestone is fully tested before the next begins.
 
