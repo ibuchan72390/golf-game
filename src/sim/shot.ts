@@ -26,64 +26,65 @@ export function initPhysics(): Promise<unknown> {
 export function resolveShot(state: HoleState, intent: ShotIntent): ShotResult {
   const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
   world.timestep = TIMESTEP;
+  try {
+    world.createCollider(
+      RAPIER.ColliderDesc.cuboid(500, 0.1, 500)
+        .setTranslation(0, -0.1, 0)
+        .setRestitution(0.4)
+        .setFriction(0.8),
+    );
 
-  world.createCollider(
-    RAPIER.ColliderDesc.cuboid(500, 0.1, 500)
-      .setTranslation(0, -0.1, 0)
-      .setRestitution(0.4)
-      .setFriction(0.8),
-  );
+    const body = world.createRigidBody(
+      RAPIER.RigidBodyDesc.dynamic()
+        .setTranslation(state.ballPos.x, Math.max(state.ballPos.y, 0) + BALL_RADIUS, state.ballPos.z)
+        .setLinearDamping(0.3) // crude air drag + rolling resistance for M1
+        .setAngularDamping(2.0)
+        .setCcdEnabled(true),
+    );
+    world.createCollider(
+      RAPIER.ColliderDesc.ball(BALL_RADIUS).setRestitution(0.55).setFriction(0.6).setDensity(1100),
+      body,
+    );
 
-  const body = world.createRigidBody(
-    RAPIER.RigidBodyDesc.dynamic()
-      .setTranslation(state.ballPos.x, Math.max(state.ballPos.y, 0) + BALL_RADIUS, state.ballPos.z)
-      .setLinearDamping(0.3) // crude air drag + rolling resistance for M1
-      .setAngularDamping(2.0)
-      .setCcdEnabled(true),
-  );
-  world.createCollider(
-    RAPIER.ColliderDesc.ball(BALL_RADIUS).setRestitution(0.55).setFriction(0.6).setDensity(1100),
-    body,
-  );
+    const rng = createRng(state.seed + state.strokes * 1013);
+    const v = launchVelocity(CLUBS[intent.club], intent, rng());
+    body.setLinvel(v, true);
 
-  const rng = createRng(state.seed + state.strokes * 1013);
-  const v = launchVelocity(CLUBS[intent.club], intent, rng());
-  body.setLinvel(v, true);
+    const trajectory: TrajectorySample[] = [];
+    let holedOut = false;
+    let slowStreak = 0;
 
-  const trajectory: TrajectorySample[] = [];
-  let holedOut = false;
-  let slowStreak = 0;
+    for (let step = 0; step < MAX_STEPS; step++) {
+      world.step();
+      const p = body.translation();
+      const vel = body.linvel();
+      const speed = Math.hypot(vel.x, vel.y, vel.z);
 
-  for (let step = 0; step < MAX_STEPS; step++) {
-    world.step();
-    const p = body.translation();
-    const vel = body.linvel();
-    const speed = Math.hypot(vel.x, vel.y, vel.z);
+      if (step % SAMPLE_EVERY === 0) {
+        trajectory.push({ t: (step + 1) * TIMESTEP, pos: { x: p.x, y: p.y, z: p.z } });
+      }
 
-    if (step % SAMPLE_EVERY === 0) {
-      trajectory.push({ t: (step + 1) * TIMESTEP, pos: { x: p.x, y: p.y, z: p.z } });
+      const distToHole = Math.hypot(p.x - state.holePos.x, p.z - state.holePos.z);
+      if (distToHole < state.holeRadius && speed < CAPTURE_SPEED) {
+        holedOut = true;
+        break;
+      }
+
+      slowStreak = speed < REST_SPEED ? slowStreak + 1 : 0;
+      if (slowStreak >= REST_STEPS) break;
     }
 
-    const distToHole = Math.hypot(p.x - state.holePos.x, p.z - state.holePos.z);
-    if (distToHole < state.holeRadius && speed < CAPTURE_SPEED) {
-      holedOut = true;
-      break;
-    }
+    const final = body.translation();
+    const restPos = holedOut
+      ? { ...state.holePos }
+      : { x: final.x, y: Math.max(final.y - BALL_RADIUS, 0), z: final.z };
+    trajectory.push({ t: trajectory.length > 0 ? trajectory[trajectory.length - 1]!.t + TIMESTEP : TIMESTEP, pos: restPos });
 
-    slowStreak = speed < REST_SPEED ? slowStreak + 1 : 0;
-    if (slowStreak >= REST_STEPS) break;
+    return {
+      newState: { ...state, ballPos: restPos, strokes: state.strokes + 1, holedOut },
+      trajectory,
+    };
+  } finally {
+    world.free();
   }
-
-  const final = body.translation();
-  const restPos = holedOut
-    ? { ...state.holePos }
-    : { x: final.x, y: Math.max(final.y - BALL_RADIUS, 0), z: final.z };
-  trajectory.push({ t: trajectory.length > 0 ? trajectory[trajectory.length - 1]!.t + TIMESTEP : TIMESTEP, pos: restPos });
-
-  world.free();
-
-  return {
-    newState: { ...state, ballPos: restPos, strokes: state.strokes + 1, holedOut },
-    trajectory,
-  };
 }
