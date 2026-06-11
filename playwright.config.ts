@@ -11,11 +11,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run build && npm run preview -- --port 4173 --strictPort',
     port: 4173,
-    reuseExistingServer: !(globalThis as Record<string, unknown>)['process']
-      ? true
-      : !(
-          (globalThis as unknown as { process: { env: Record<string, string> } }).process.env['CI']
-        ),
+    reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },
   projects: [
