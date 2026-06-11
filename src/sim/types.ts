@@ -1,0 +1,48 @@
+export type ClubId = 'driver' | 'iron7' | 'wedge' | 'putter';
+
+export interface ClubStats {
+  name: string;
+  /** ball speed in m/s at power = 1 */
+  maxSpeed: number;
+  /** launch angle in degrees */
+  launchDeg: number;
+  /** max yaw dispersion in radians at |contactError| = 1 */
+  accuracy: number;
+}
+
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface ShotIntent {
+  club: ClubId;
+  /** yaw radians; dir = (sin, 0, -cos) so 0 faces -Z */
+  aimDir: number;
+  /** 0..1 fraction of club max speed */
+  power: number;
+  /** -1..1, 0 = pure strike; from swing input quality */
+  contactError: number;
+}
+
+export interface HoleState {
+  seed: number;
+  ballPos: Vec3;
+  holePos: Vec3;
+  /** capture radius in meters */
+  holeRadius: number;
+  strokes: number;
+  holedOut: boolean;
+}
+
+export interface TrajectorySample {
+  /** seconds since strike */
+  t: number;
+  pos: Vec3;
+}
+
+export interface ShotResult {
+  newState: HoleState;
+  trajectory: TrajectorySample[];
+}
