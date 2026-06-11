@@ -39,6 +39,15 @@ describe('Game', () => {
     expect(g.hole.ballPos.z).toBeLessThan(-100);
   });
 
+  it('performSwing during flight is ignored', () => {
+    const g = makeGame();
+    g.performSwing({ club: 'driver', aimDir: 0, power: 1, contactError: 0 });
+    expect(g.phase).toBe('flying');
+    g.performSwing({ club: 'driver', aimDir: 0, power: 1, contactError: 0 });
+    g.update(60);
+    expect(g.hole.strokes).toBe(1);
+  });
+
   it('holing out reaches the holed phase', () => {
     const g = makeGame();
     g.hole.ballPos = { x: 0, y: 0, z: -148.5 };

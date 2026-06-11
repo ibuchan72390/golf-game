@@ -76,6 +76,8 @@ async function boot() {
   (window as unknown as Record<string, unknown>).__golfTest = {
     getState: () => ({ phase: game.phase, strokes: game.hole.strokes, ballPos: game.hole.ballPos, holedOut: game.hole.holedOut }),
     swing: (intent: Partial<ShotIntent>) => {
+      meter.reset();
+      hud.setMeter(false, 0);
       game.performSwing({
         club: intent.club ?? club,
         aimDir: intent.aimDir ?? game.aimDir,
