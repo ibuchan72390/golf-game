@@ -6,8 +6,8 @@ Play it: `https://<username>.github.io/golf-game/`
 ## Develop
 
 - `npm install` then `npm run dev`
-- Controls: ←/→ aim · space/click/tap drives the 3-click meter · 1–4 select club
-- `?seed=N` fixes the RNG seed; `&instant=1` skips flight animation
+- Controls: ←/→ aim · hold-release (default): hold to charge, release, tap the band · 1–4 or tap to select club · ⚙ settings (switch to 3-click)
+- `?seed=N` fixes the course + RNG seed; `&instant=1` skips flight animation; `?dev=courses` shows the generator gallery
 
 ## Test
 
