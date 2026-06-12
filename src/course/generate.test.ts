@@ -18,7 +18,7 @@ describe('generateHole invariants (seeds 1..200)', () => {
         expect(surfaceAt(h, h.tee.x, h.tee.z)).not.toBe(SURFACE.sand);
         expect(h.difficulty).toBeGreaterThanOrEqual(0);
         expect(h.difficulty).toBeLessThanOrEqual(1);
-        for (const v of h.heights) expect(Math.abs(v)).toBeLessThanOrEqual(6);
+        expect(h.heights.every((v) => Math.abs(v) <= 6)).toBe(true);
         expect(h.tee.y).toBeCloseTo(heightAt(h, h.tee.x, h.tee.z), 5);
         expect(h.pin.y).toBeCloseTo(heightAt(h, h.pin.x, h.pin.z), 5);
       }
