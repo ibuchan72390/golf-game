@@ -3,6 +3,7 @@ import { CLUBS, launchVelocity } from './clubs';
 import { createRng } from './rng';
 import { heightAt, surfaceAt } from '../course/format';
 import type { HoleFile } from '../course/format';
+import { strikeModifier } from './lies';
 import type { HoleState, ShotIntent, ShotResult, TrajectorySample } from './types';
 
 export const BALL_RADIUS = 0.021;
@@ -75,7 +76,14 @@ export function resolveShot(state: HoleState, intent: ShotIntent): ShotResult {
     );
 
     const rng = createRng(state.seed + state.strokes * 1013);
-    const v = launchVelocity(CLUBS[intent.club], intent, rng());
+    const lieAtStrike = surfaceAt(state.hole, state.ballPos.x, state.ballPos.z);
+    const mod = strikeModifier(lieAtStrike, intent.club, rng());
+    const adjusted: ShotIntent = {
+      ...intent,
+      power: intent.power * mod.powerMul,
+      contactError: Math.max(-1, Math.min(1, intent.contactError * mod.errorMul)),
+    };
+    const v = launchVelocity(CLUBS[intent.club], adjusted, rng());
     body.setLinvel(v, true);
 
     const trajectory: TrajectorySample[] = [];
