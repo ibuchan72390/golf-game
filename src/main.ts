@@ -68,6 +68,7 @@ async function boot() {
       hud.setMeter(true, meter.value(now));
     }
     game.update(dt);
+    scene.updateCamera(dt, 'aiming', null);
     scene.render();
     requestAnimationFrame(frame);
   }
