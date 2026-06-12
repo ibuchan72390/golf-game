@@ -1,3 +1,5 @@
+import type { SwingStage } from './holdRelease';
+
 export const METER_PERIOD_MS = 1600;
 export const ACCURACY_TARGET = 0.1;
 
@@ -41,6 +43,13 @@ export class ThreeClickMeter {
 
   result(): { power: number; contactError: number } {
     return { power: this.power, contactError: this.contactError };
+  }
+
+  stage(): SwingStage {
+    if (this.phase === 'power') return 'charging';
+    if (this.phase === 'accuracy') return 'contact';
+    if (this.phase === 'done') return 'swinging';
+    return 'ready';
   }
 
   reset(): void {
