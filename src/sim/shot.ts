@@ -23,15 +23,15 @@ let rapierReady: Promise<unknown> | null = null;
 /**
  * Rapier heightfields are column-major with rows along Z and columns along X,
  * spanning scale.x × scale.z centered on the collider origin.
- * VERIFY with heightfield.test.ts — if rest heights mirror, flip the iz index
- * to `(depth - iz)` in the f32 fill below.
+ * z rows are filled reversed: Rapier's second axis runs opposite our -z convention
+ * — pinned by the z-ramp probes below.
  */
 function buildTerrainCollider(world: RAPIER.World, hole: HoleFile): void {
   const { width, depth, cellSize } = hole.grid;
   const f32 = new Float32Array((depth + 1) * (width + 1));
   for (let iz = 0; iz <= depth; iz++) {
     for (let ix = 0; ix <= width; ix++) {
-      f32[ix * (depth + 1) + iz] = hole.heights[iz * (width + 1) + ix]!;
+      f32[ix * (depth + 1) + (depth - iz)] = hole.heights[iz * (width + 1) + ix]!;
     }
   }
   world.createCollider(

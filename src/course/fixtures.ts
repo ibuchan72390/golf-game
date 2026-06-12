@@ -17,6 +17,19 @@ export function flatHoleFile(fill: Surface = SURFACE.fairway): HoleFile {
   return { par: 3, grid: { width, depth, cellSize }, heights, surfaces, tee: { x: 0, y: 0, z: 0 }, pin, difficulty: 0.1 };
 }
 
+/** Ramp rising +0.02 m per -z meter — z-mirror of the collider fill cannot pass this. */
+export function zRampHoleFile(): HoleFile {
+  const base = flatHoleFile();
+  // Move pin off-grid so probe points are never captured before settling.
+  base.pin = { x: 0, y: 0, z: -1 };
+  for (let iz = 0; iz <= base.grid.depth; iz++) {
+    for (let ix = 0; ix <= base.grid.width; ix++) {
+      base.heights[iz * (base.grid.width + 1) + ix] = iz * base.grid.cellSize * 0.02;
+    }
+  }
+  return base;
+}
+
 /** Ramp rising +0.05 m per +x meter — for verifying heightfield orientation. */
 export function rampHoleFile(): HoleFile {
   const base = flatHoleFile();

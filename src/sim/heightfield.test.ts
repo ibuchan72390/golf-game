@@ -1,7 +1,7 @@
 // src/sim/heightfield.test.ts
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initPhysics, resolveShot } from './shot';
-import { flatHoleFile, rampHoleFile } from '../course/fixtures';
+import { flatHoleFile, rampHoleFile, zRampHoleFile } from '../course/fixtures';
 import { SURFACE } from '../course/format';
 import { heightAt } from '../course/format';
 import type { HoleState } from './types';
@@ -30,4 +30,11 @@ describe('heightfield collider orientation', () => {
     const { newState } = resolveShot(stateAt(0, -50, flatHoleFile()), { club: 'putter', aimDir: 0, power: 0, contactError: 0 });
     expect(newState.ballPos.y).toBeCloseTo(0, 1);
   });
+
+  for (const [x, z, expected] of [[0, -30, 0.6], [0, -150, 3.0]] as const) {
+    it(`z-ramp: ball rests at height ${expected} at z=${z}`, () => {
+      const { newState } = resolveShot(stateAt(x, z, zRampHoleFile()), { club: 'putter', aimDir: 0, power: 0, contactError: 0 });
+      expect(newState.ballPos.y).toBeCloseTo(expected, 1);
+    });
+  }
 });
