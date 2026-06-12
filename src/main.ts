@@ -43,7 +43,7 @@ async function boot() {
       if ((meter.phase as string) === 'done') {
         const { power, contactError } = meter.result();
         meter.reset();
-        hud.setMeter(false, 0);
+        hud.setMeter(0, 'ready', 'threeClick');
         game.performSwing({ club, aimDir: game.aimDir, power, contactError });
         if (instant) game.update(60);
       }
@@ -65,7 +65,7 @@ async function boot() {
     const dt = (now - last) / 1000;
     last = now;
     if (meter.phase === 'power' || meter.phase === 'accuracy') {
-      hud.setMeter(true, meter.value(now));
+      hud.setMeter(meter.value(now), meter.stage(), 'threeClick');
     }
     game.update(dt);
     scene.updateCamera(dt, 'aiming', null);
@@ -79,7 +79,7 @@ async function boot() {
     getState: () => ({ phase: game.phase, strokes: game.hole.strokes, ballPos: game.hole.ballPos, holedOut: game.hole.holedOut }),
     swing: (intent: Partial<ShotIntent>) => {
       meter.reset();
-      hud.setMeter(false, 0);
+      hud.setMeter(0, 'ready', 'threeClick');
       game.performSwing({
         club: intent.club ?? club,
         aimDir: intent.aimDir ?? game.aimDir,
