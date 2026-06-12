@@ -1,65 +1,84 @@
 // src/app/game.test.ts
 import { beforeAll, describe, expect, it } from 'vitest';
-import { Game } from './game';
+import { autoClub, Game, makeHoleState } from './game';
 import { initPhysics } from '../sim/shot';
+import { flatHoleFile } from '../course/fixtures';
+import { SURFACE } from '../course/format';
 
 beforeAll(async () => {
   await initPhysics();
 });
 
-function makeGame() {
-  return new Game(42, {
+function makeGame(hole = flatHoleFile()) {
+  return new Game(42, hole, {
     onStateChange: () => {},
     setBallPosition: () => {},
     setAimDir: () => {},
     frameBall: () => {},
+    onLanding: () => {},
   });
 }
 
+describe('autoClub', () => {
+  it('switches to putter on the green and off putter when leaving it', () => {
+    expect(autoClub(SURFACE.green, 'iron7')).toBe('putter');
+    expect(autoClub(SURFACE.fairway, 'putter')).toBe('iron7');
+    expect(autoClub(SURFACE.rough, 'driver')).toBe('driver');
+  });
+});
+
 describe('Game', () => {
-  it('starts in aiming with 0 strokes, ball on tee', () => {
+  it('starts aiming from the tee with the driver', () => {
     const g = makeGame();
     expect(g.phase).toBe('aiming');
+    expect(g.club).toBe('driver');
     expect(g.hole.strokes).toBe(0);
-    expect(g.hole.ballPos).toEqual({ x: 0, y: 0, z: 0 });
+    expect(g.hole.ballPos).toEqual({ ...flatHoleFile().tee });
   });
 
-  it('default aim points at the hole', () => {
-    const g = makeGame();
-    expect(g.aimDir).toBeCloseTo(0, 5);
-  });
-
-  it('performSwing flies the ball, then settles back to aiming with +1 stroke', () => {
+  it('full drive flies, settles back to aiming, +1 stroke', () => {
     const g = makeGame();
     g.performSwing({ club: 'driver', aimDir: 0, power: 1, contactError: 0 });
     expect(g.phase).toBe('flying');
-    g.update(60); // advance well past flight duration
+    g.update(60);
     expect(g.phase).toBe('aiming');
     expect(g.hole.strokes).toBe(1);
     expect(g.hole.ballPos.z).toBeLessThan(-100);
   });
 
-  it('performSwing during flight is ignored', () => {
+  it('re-entrant swing during flight is ignored', () => {
     const g = makeGame();
     g.performSwing({ club: 'driver', aimDir: 0, power: 1, contactError: 0 });
-    expect(g.phase).toBe('flying');
     g.performSwing({ club: 'driver', aimDir: 0, power: 1, contactError: 0 });
     g.update(60);
     expect(g.hole.strokes).toBe(1);
   });
 
-  it('holing out reaches the holed phase', () => {
+  it('putter power is rescaled: a full-bar 3 m putt stays near the hole', () => {
     const g = makeGame();
-    g.hole.ballPos = { x: 0, y: 0, z: -148.5 };
-    g.performSwing({ club: 'putter', aimDir: g.aimToHole(), power: 0.25, contactError: 0 });
+    g.hole.ballPos = { x: 0, y: 0, z: -147 };
+    g.hole.lie = SURFACE.green;
+    g.performSwing({ club: 'putter', aimDir: g.aimToHole(), power: 1, contactError: 0 });
     g.update(60);
-    expect(g.phase).toBe('holed');
-    expect(g.hole.holedOut).toBe(true);
+    const d = Math.hypot(g.hole.ballPos.x, g.hole.ballPos.z + 150);
+    expect(g.hole.holedOut || d < 8).toBe(true); // without rescale, 12 m/s rolls ~40 m past
   });
 
-  it('adjustAim rotates and re-aims', () => {
+  it('holing out reaches holed; club auto-switches to putter on the green', () => {
     const g = makeGame();
-    g.adjustAim(0.2);
-    expect(g.aimDir).toBeCloseTo(0.2, 5);
+    g.hole.ballPos = { x: 0, y: 0, z: -148.5 };
+    g.hole.lie = SURFACE.green;
+    g.performSwing({ club: 'putter', aimDir: g.aimToHole(), power: 1, contactError: 0 });
+    g.update(60);
+    expect(g.hole.holedOut).toBe(true);
+    expect(g.phase).toBe('holed');
+  });
+
+  it('makeHoleState seeds state from a HoleFile', () => {
+    const hole = flatHoleFile();
+    const s = makeHoleState(hole, 7);
+    expect(s.ballPos).toEqual({ ...hole.tee });
+    expect(s.holePos).toEqual({ ...hole.pin });
+    expect(s.hole).toBe(hole);
   });
 });

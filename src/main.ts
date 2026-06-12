@@ -2,11 +2,11 @@
 import './style.css';
 import { createScene } from './render/scene';
 import { createHud } from './ui/hud';
-import { Game, type GamePhase } from './app/game';
+import { Game } from './app/game';
 import { initPhysics } from './sim/shot';
 import { ThreeClickMeter } from './input/threeClick';
 import { flatHoleFile } from './course/fixtures';
-import type { ClubId, HoleState, ShotIntent } from './sim/types';
+import type { ClubId, ShotIntent } from './sim/types';
 
 async function boot() {
   await initPhysics();
@@ -22,14 +22,14 @@ async function boot() {
   const scene = createScene(canvas, hole);
   const hud = createHud(hudRoot);
 
-  let club: ClubId = 'driver';
   const meter = new ThreeClickMeter();
 
-  const game = new Game(seed, {
-    onStateChange: (phase: GamePhase, hole: HoleState) => hud.update(phase, hole, club),
+  const game = new Game(seed, hole, {
+    onStateChange: (phase, holeState, activeClub) => hud.update(phase, holeState, activeClub),
     setBallPosition: (p) => scene.setBallPosition(p),
     setAimDir: (yaw) => scene.setAimDir(yaw),
     frameBall: () => scene.frameBall(),
+    onLanding: (p) => scene.markLanding(p),
   });
 
   const clubKeys: Record<string, ClubId> = { '1': 'driver', '2': 'iron7', '3': 'wedge', '4': 'putter' };
@@ -44,7 +44,7 @@ async function boot() {
         const { power, contactError } = meter.result();
         meter.reset();
         hud.setMeter(0, 'ready', 'threeClick');
-        game.performSwing({ club, aimDir: game.aimDir, power, contactError });
+        game.performSwing({ club: game.club, aimDir: game.aimDir, power, contactError });
         if (instant) game.update(60);
       }
     }
@@ -55,7 +55,7 @@ async function boot() {
     if (e.key === 'ArrowRight') game.adjustAim(0.03);
     if (e.key === ' ') { e.preventDefault(); pressAction(); }
     const c = clubKeys[e.key];
-    if (c && game.phase === 'aiming') { club = c; hud.update(game.phase, game.hole, club); }
+    if (c && game.phase === 'aiming') { game.setClub(c); }
   });
   canvas.addEventListener('pointerdown', pressAction);
   window.addEventListener('resize', () => scene.resize());
@@ -81,7 +81,7 @@ async function boot() {
       meter.reset();
       hud.setMeter(0, 'ready', 'threeClick');
       game.performSwing({
-        club: intent.club ?? club,
+        club: intent.club ?? game.club,
         aimDir: intent.aimDir ?? game.aimDir,
         power: intent.power ?? 1,
         contactError: intent.contactError ?? 0,
