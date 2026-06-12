@@ -5,16 +5,21 @@ import type { Vec3 } from '../sim/types';
 const MAX_POINTS = 90;
 
 export class BallTrail {
-  private points: THREE.Vector3[] = [];
+  private positions = new Float32Array(MAX_POINTS * 3);
+  private count = 0;
   private line: THREE.Line;
   private marker: THREE.Mesh;
   private markerAge = Infinity;
 
   constructor(scene: THREE.Scene) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(this.positions, 3));
+    geo.setDrawRange(0, 0);
     this.line = new THREE.Line(
-      new THREE.BufferGeometry(),
+      geo,
       new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.65 }),
     );
+    this.line.frustumCulled = false; // draw range changes every frame; skip stale bounding-sphere culling
     this.marker = new THREE.Mesh(
       new THREE.RingGeometry(0.2, 0.35, 24),
       new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0 }),
@@ -24,9 +29,18 @@ export class BallTrail {
   }
 
   push(p: Vec3): void {
-    this.points.push(new THREE.Vector3(p.x, p.y + 0.12, p.z));
-    if (this.points.length > MAX_POINTS) this.points.shift();
-    this.line.geometry.setFromPoints(this.points);
+    if (this.count === MAX_POINTS) {
+      this.positions.copyWithin(0, 3);
+      this.count--;
+    }
+    const i = this.count * 3;
+    this.positions[i] = p.x;
+    this.positions[i + 1] = p.y + 0.12;
+    this.positions[i + 2] = p.z;
+    this.count++;
+    const attr = this.line.geometry.getAttribute('position') as THREE.BufferAttribute;
+    attr.needsUpdate = true;
+    this.line.geometry.setDrawRange(0, this.count);
   }
 
   markLanding(p: Vec3, groundY: number): void {
@@ -44,7 +58,7 @@ export class BallTrail {
   }
 
   clear(): void {
-    this.points = [];
-    this.line.geometry.setFromPoints([]);
+    this.count = 0;
+    this.line.geometry.setDrawRange(0, 0);
   }
 }
