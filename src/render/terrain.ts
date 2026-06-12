@@ -35,11 +35,11 @@ export function buildTerrainMesh(hole: HoleFile, gradientMap: THREE.Texture): TH
       c.setHex(SURFACE_COLORS[hole.surfaces[iz * width + ix]!]);
       const quad = [
         [vx(ix), vy(ix, iz), vz(iz)],
-        [vx(ix), vy(ix, iz + 1), vz(iz + 1)],
-        [vx(ix + 1), vy(ix + 1, iz), vz(iz)],
         [vx(ix + 1), vy(ix + 1, iz), vz(iz)],
         [vx(ix), vy(ix, iz + 1), vz(iz + 1)],
+        [vx(ix + 1), vy(ix + 1, iz), vz(iz)],
         [vx(ix + 1), vy(ix + 1, iz + 1), vz(iz + 1)],
+        [vx(ix), vy(ix, iz + 1), vz(iz + 1)],
       ];
       for (const [x, y, z] of quad) {
         positions.push(x!, y!, z!);
