@@ -2,9 +2,10 @@
 import './style.css';
 import { createScene } from './render/scene';
 import { createHud } from './ui/hud';
-import { Game, makeFlatHole, type GamePhase } from './app/game';
+import { Game, type GamePhase } from './app/game';
 import { initPhysics } from './sim/shot';
 import { ThreeClickMeter } from './input/threeClick';
+import { flatHoleFile } from './course/fixtures';
 import type { ClubId, HoleState, ShotIntent } from './sim/types';
 
 async function boot() {
@@ -17,8 +18,8 @@ async function boot() {
   const canvas = document.querySelector('#game-canvas') as HTMLCanvasElement;
   const hudRoot = document.querySelector('#hud') as HTMLElement;
 
-  const holePos = makeFlatHole(seed).holePos;
-  const scene = createScene(canvas, holePos);
+  const hole = flatHoleFile();
+  const scene = createScene(canvas, hole);
   const hud = createHud(hudRoot);
 
   let club: ClubId = 'driver';
