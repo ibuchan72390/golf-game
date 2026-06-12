@@ -1,6 +1,8 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import { CLUBS, launchVelocity } from './clubs';
 import { createRng } from './rng';
+import { heightAt, surfaceAt } from '../course/format';
+import type { HoleFile } from '../course/format';
 import type { HoleState, ShotIntent, ShotResult, TrajectorySample } from './types';
 
 export const BALL_RADIUS = 0.021;
@@ -10,8 +12,35 @@ const SAMPLE_EVERY = 2; // record at 60 Hz
 const REST_SPEED = 0.05; // m/s
 const REST_STEPS = 60; // must stay slow this many steps (0.5 s)
 const CAPTURE_SPEED = 3.0; // m/s — max speed at which the cup grabs the ball
+const AIR_DAMPING = 0.3;
+/** High damping applied when grounded and nearly at rest, preventing slope drift. */
+const GROUND_DAMPING_SLOW = 15.0;
+/** Moderate damping applied when grounded and rolling. */
+const GROUND_DAMPING_ROLL = 1.0;
 
 let rapierReady: Promise<unknown> | null = null;
+
+/**
+ * Rapier heightfields are column-major with rows along Z and columns along X,
+ * spanning scale.x × scale.z centered on the collider origin.
+ * VERIFY with heightfield.test.ts — if rest heights mirror, flip the iz index
+ * to `(depth - iz)` in the f32 fill below.
+ */
+function buildTerrainCollider(world: RAPIER.World, hole: HoleFile): void {
+  const { width, depth, cellSize } = hole.grid;
+  const f32 = new Float32Array((depth + 1) * (width + 1));
+  for (let iz = 0; iz <= depth; iz++) {
+    for (let ix = 0; ix <= width; ix++) {
+      f32[ix * (depth + 1) + iz] = hole.heights[iz * (width + 1) + ix]!;
+    }
+  }
+  world.createCollider(
+    RAPIER.ColliderDesc.heightfield(depth, width, f32, { x: width * cellSize, y: 1, z: depth * cellSize })
+      .setTranslation(0, 0, -(depth * cellSize) / 2)
+      .setFriction(0.8)
+      .setRestitution(0.4),
+  );
+}
 
 /** Must resolve before the first resolveShot call (app boot / test beforeAll). */
 export function initPhysics(): Promise<unknown> {
@@ -27,16 +56,15 @@ export function resolveShot(state: HoleState, intent: ShotIntent): ShotResult {
   const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
   world.timestep = TIMESTEP;
   try {
-    world.createCollider(
-      RAPIER.ColliderDesc.cuboid(500, 0.1, 500)
-        .setTranslation(0, -0.1, 0)
-        .setRestitution(0.4)
-        .setFriction(0.8),
-    );
+    buildTerrainCollider(world, state.hole);
 
     const body = world.createRigidBody(
       RAPIER.RigidBodyDesc.dynamic()
-        .setTranslation(state.ballPos.x, Math.max(state.ballPos.y, 0) + BALL_RADIUS, state.ballPos.z)
+        .setTranslation(
+          state.ballPos.x,
+          heightAt(state.hole, state.ballPos.x, state.ballPos.z) + BALL_RADIUS,
+          state.ballPos.z,
+        )
         .setLinearDamping(0.3) // crude air drag + rolling resistance for M1
         .setAngularDamping(2.0)
         .setCcdEnabled(true),
@@ -60,6 +88,11 @@ export function resolveShot(state: HoleState, intent: ShotIntent): ShotResult {
       const vel = body.linvel();
       const speed = Math.hypot(vel.x, vel.y, vel.z);
 
+      // Adaptive ground damping: prevents slope drift at rest while allowing rolls/putts
+      const terrainY = heightAt(state.hole, p.x, p.z);
+      const grounded = p.y - terrainY < BALL_RADIUS * 3;
+      body.setLinearDamping(grounded ? (speed < 0.2 ? GROUND_DAMPING_SLOW : GROUND_DAMPING_ROLL) : AIR_DAMPING);
+
       if (step % SAMPLE_EVERY === 0) {
         trajectory.push({ t: (step + 1) * TIMESTEP, pos: { x: p.x, y: p.y, z: p.z } });
       }
@@ -77,11 +110,17 @@ export function resolveShot(state: HoleState, intent: ShotIntent): ShotResult {
     const final = body.translation();
     const restPos = holedOut
       ? { ...state.holePos }
-      : { x: final.x, y: Math.max(final.y - BALL_RADIUS, 0), z: final.z };
+      : { x: final.x, y: final.y - BALL_RADIUS, z: final.z };
     trajectory.push({ t: trajectory.length > 0 ? trajectory[trajectory.length - 1]!.t + TIMESTEP : TIMESTEP, pos: restPos });
 
     return {
-      newState: { ...state, ballPos: restPos, strokes: state.strokes + 1, holedOut },
+      newState: {
+        ...state,
+        ballPos: restPos,
+        strokes: state.strokes + 1,
+        holedOut,
+        lie: surfaceAt(state.hole, restPos.x, restPos.z),
+      },
       trajectory,
     };
   } finally {

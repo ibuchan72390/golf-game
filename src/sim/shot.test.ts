@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initPhysics, resolveShot } from './shot';
 import type { HoleState, ShotIntent } from './types';
+import { flatHoleFile } from '../course/fixtures';
+import { SURFACE } from '../course/format';
 
 function flatHole(): HoleState {
   return {
@@ -10,6 +12,8 @@ function flatHole(): HoleState {
     holeRadius: 0.15,
     strokes: 0,
     holedOut: false,
+    hole: flatHoleFile(),
+    lie: SURFACE.fairway,
   };
 }
 

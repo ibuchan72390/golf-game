@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initPhysics, resolveShot } from './shot';
 import type { HoleState } from './types';
+import { flatHoleFile } from '../course/fixtures';
+import { SURFACE } from '../course/format';
 
 beforeAll(async () => {
   await initPhysics();
@@ -14,6 +16,8 @@ function onGreen(metersFromHole: number): HoleState {
     holeRadius: 0.15,
     strokes: 2,
     holedOut: false,
+    hole: flatHoleFile(),
+    lie: SURFACE.fairway,
   };
 }
 

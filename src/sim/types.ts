@@ -1,3 +1,5 @@
+import type { HoleFile, Surface } from '../course/format';
+
 export type ClubId = 'driver' | 'iron7' | 'wedge' | 'putter';
 
 export interface ClubStats {
@@ -34,6 +36,10 @@ export interface HoleState {
   holeRadius: number;
   strokes: number;
   holedOut: boolean;
+  /** terrain this hole is played on */
+  hole: HoleFile;
+  /** surface under the ball at rest */
+  lie: Surface;
 }
 
 export interface TrajectorySample {

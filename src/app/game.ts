@@ -2,6 +2,8 @@
 import { resolveShot } from '../sim/shot';
 import type { HoleState, ShotIntent, Vec3 } from '../sim/types';
 import { TrajectoryPlayback } from '../render/playback';
+import { flatHoleFile } from '../course/fixtures';
+import { SURFACE } from '../course/format';
 
 export type GamePhase = 'aiming' | 'metering' | 'flying' | 'holed';
 
@@ -14,13 +16,16 @@ export interface GameView {
 }
 
 export function makeFlatHole(seed: number): HoleState {
+  const hole = flatHoleFile();
   return {
     seed,
-    ballPos: { x: 0, y: 0, z: 0 },
-    holePos: { x: 0, y: 0, z: -150 },
+    ballPos: { ...hole.tee },
+    holePos: { ...hole.pin },
     holeRadius: 0.15,
     strokes: 0,
     holedOut: false,
+    hole,
+    lie: SURFACE.fairway,
   };
 }
 
