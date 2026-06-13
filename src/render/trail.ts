@@ -61,4 +61,11 @@ export class BallTrail {
     this.count = 0;
     this.line.geometry.setDrawRange(0, 0);
   }
+
+  dispose(): void {
+    this.line.geometry.dispose();
+    (this.line.material as THREE.Material).dispose();
+    this.marker.geometry.dispose();
+    (this.marker.material as THREE.Material).dispose();
+  }
 }

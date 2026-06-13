@@ -37,8 +37,8 @@ async function boot() {
   const scoreStrip = document.createElement('div');
   scoreStrip.id = 'scorestrip';
   scoreStrip.style.cssText =
-    'position:absolute;top:54px;left:50%;transform:translateX(-50%);width:min(94vw,560px);pointer-events:none;display:none;';
-  hudRoot.appendChild(scoreStrip);
+    'position:fixed;top:54px;left:50%;transform:translateX(-50%);width:min(94vw,560px);pointer-events:none;display:none;z-index:5;';
+  document.body.appendChild(scoreStrip);
 
   const profile = loadProfile(localStorage);
   let scheme: InputScheme = profile.settings.inputScheme;
@@ -305,6 +305,7 @@ async function boot() {
       update: () => {},
       teardown: () => {
         cancelAnimationFrame(raf);
+        scene.dispose();
         window.removeEventListener('keydown', onKeydown);
         window.removeEventListener('keyup', onKeyup);
         canvas.removeEventListener('pointerdown', pressDown);

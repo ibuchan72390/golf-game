@@ -18,6 +18,7 @@ export interface GameScene {
   trailClear(): void;
   markLanding(p: Vec3): void;
   resize(): void;
+  dispose(): void;
 }
 
 function makeSkyTexture(): THREE.CanvasTexture {
@@ -32,6 +33,16 @@ function makeSkyTexture(): THREE.CanvasTexture {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 1, 256);
   return new THREE.CanvasTexture(canvas);
+}
+
+function disposeObject(obj: THREE.Object3D): void {
+  obj.traverse((o) => {
+    const mesh = o as THREE.Mesh;
+    if (mesh.geometry) mesh.geometry.dispose();
+    const mat = mesh.material;
+    if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+    else if (mat) (mat as THREE.Material).dispose();
+  });
 }
 
 export function createScene(canvas: HTMLCanvasElement, hole: HoleFile): GameScene {
@@ -156,6 +167,13 @@ export function createScene(canvas: HTMLCanvasElement, hole: HoleFile): GameScen
       renderer.setSize(window.innerWidth, window.innerHeight, false);
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
+    },
+    dispose: () => {
+      disposeObject(scene);
+      gradientMap.dispose();
+      (scene.background as THREE.Texture)?.dispose?.();
+      trail.dispose();
+      renderer.dispose();
     },
   };
 
