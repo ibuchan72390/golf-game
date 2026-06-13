@@ -2,6 +2,10 @@
 -- Identity + friend graph for the multiplayer MVP. RLS keyed off the OIDC `sub`
 -- delivered by third-party auth: auth.jwt()->>'sub'.
 
+-- gen_random_bytes() lives in pgcrypto (Supabase installs it in the `extensions`
+-- schema). Ensure it exists so the invite RPC resolves on a fresh project.
+create extension if not exists pgcrypto with schema extensions;
+
 create or replace function public.current_uid() returns text
   language sql stable as $$ select auth.jwt()->>'sub' $$;
 
@@ -62,7 +66,7 @@ create policy friend_invites_select_own on public.friend_invites
 
 -- RPC: create a one-time invite code for the caller.
 create or replace function public.create_friend_invite() returns text
-  language plpgsql security definer set search_path = public as $$
+  language plpgsql security definer set search_path = public, extensions as $$
 declare
   uid text := public.current_uid();
   new_code text;
