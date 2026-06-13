@@ -13,6 +13,8 @@ import { HoldReleaseMeter } from './input/holdRelease';
 import { generateCourse } from './course/generate';
 import { SURFACE, surfaceAt } from './course/format';
 import { loadProfile, saveProfile, type InputScheme } from './save/profile';
+import { loadoutFromProfile, awardPoints, buyUpgrade } from './sim/progression';
+import { showUpgradeScreen } from './ui/upgrade';
 import { renderCourseGallery } from './dev/courses';
 import type { ClubId, HoleState, ShotIntent } from './sim/types';
 import type { CameraMode } from './render/cameraRig';
@@ -40,7 +42,8 @@ async function boot() {
     'position:fixed;top:54px;left:50%;transform:translateX(-50%);width:min(94vw,560px);pointer-events:none;display:none;z-index:5;';
   document.body.appendChild(scoreStrip);
 
-  const profile = loadProfile(localStorage);
+  let profile = loadProfile(localStorage);
+  let loadout = loadoutFromProfile(profile);
   let scheme: InputScheme = profile.settings.inputScheme;
 
   let round: Round | null = null;
@@ -61,18 +64,27 @@ async function boot() {
     scoreStrip.style.display = 'none';
     showMenu(screen(), {
       onPlay: () => showCourseSelect(screen(), CURATED, startRound),
-      onUpgrade: () => {
-        /* Strand 4 wires the upgrade screen here */
-        showMenuBackHint();
-      },
+      onUpgrade: () => openUpgrade(),
       onSettings: () => {
         /* settings panel toggles in-hole; from menu just go back */
         toMenu();
       },
     });
   }
-  function showMenuBackHint() {
-    toMenu();
+
+  function openUpgrade() {
+    showUpgradeScreen(screen(), profile, {
+      onBuy: (club, stat) => {
+        const next = buyUpgrade(profile, club, stat);
+        if (next) {
+          profile = next;
+          loadout = loadoutFromProfile(profile);
+          saveProfile(localStorage, profile);
+          openUpgrade(); // re-render with new balance/levels
+        }
+      },
+      onClose: toMenu,
+    });
   }
 
   function startRound(seed: number) {
@@ -95,10 +107,19 @@ async function boot() {
       },
       onRoundComplete: (card) => {
         scoreStrip.style.display = 'none';
-        const earned = 10; // Strand 4 replaces with the real award
+        const avgDifficulty = round!.course.holes.reduce((s, h) => s + h.difficulty, 0) / round!.course.holes.length;
+        const rel = card.holes.reduce((s, h) => s + ((h.strokes ?? 0) - h.par), 0);
+        const earned = awardPoints(avgDifficulty, rel);
+        profile = { ...profile, skillPoints: profile.skillPoints + earned };
+        const key = `seed:${round!.course.seed}`;
+        const total = card.holes.reduce((s, h) => s + (h.strokes ?? 0), 0);
+        if (profile.bestScores[key] === undefined || total < profile.bestScores[key]!) {
+          profile = { ...profile, bestScores: { ...profile.bestScores, [key]: total } };
+        }
+        saveProfile(localStorage, profile);
         showRoundSummary(screen(), card, earned, toMenu);
       },
-    });
+    }, loadout);
     mountCurrentHole();
   }
 
@@ -298,6 +319,7 @@ async function boot() {
           document.querySelector<HTMLElement>('#hole-next')?.click();
         }
       },
+      profileState: () => ({ skillPoints: profile.skillPoints, driverPower: profile.clubLevels.driver.power }),
       ready: true,
     };
 

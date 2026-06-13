@@ -32,7 +32,7 @@ export function showUpgradeScreen(root: HTMLElement, profile: Profile, cb: Upgra
       <div style="margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:#b0bec5;">${s.label}</span><span>Lv ${level}</span></div>
         <div style="height:10px;background:#1b2327;border-radius:5px;margin:4px 0;overflow:hidden;"><div style="width:${(level / MAX_STAT_LEVEL) * 100}%;height:100%;background:${s.color};"></div></div>
-        <button id="buy-${s.key}" ${maxed ? 'disabled' : ''} style="width:100%;background:${afford ? '#ffca28' : '#546e7a'};color:#263238;border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:800;cursor:${afford ? 'pointer' : 'default'};">${maxed ? 'MAX' : `+ ${s.label} · ${cost} ⭐`}</button>
+        <button id="buy-${s.key}" ${maxed || !afford ? 'disabled' : ''} style="width:100%;background:${afford ? '#ffca28' : '#546e7a'};color:#263238;border:none;border-radius:6px;padding:6px;font-size:11px;font-weight:800;cursor:${afford ? 'pointer' : 'default'};">${maxed ? 'MAX' : `+ ${s.label} · ${cost} ⭐`}</button>
       </div>`;
   }).join('');
   root.innerHTML = `
