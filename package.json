@@ -17,6 +17,8 @@
   "type": "module",
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.19.3",
+    "@supabase/supabase-js": "^2.108.1",
+    "oidc-client-ts": "^3.5.0",
     "three": "^0.184.0"
   },
   "devDependencies": {
