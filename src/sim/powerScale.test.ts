@@ -23,14 +23,14 @@ describe('meterMaxSpeed', () => {
     expect(roll).toBeLessThan(20);
   });
   it('wedge chips rescale inside 40 m off-green', () => {
-    const chip = meterMaxSpeed('wedge', SURFACE.fairway, 20);
-    expect(chip).toBeLessThan(CLUBS.wedge.maxSpeed);
+    const chip = meterMaxSpeed('sandWedge', SURFACE.fairway, 20);
+    expect(chip).toBeLessThan(CLUBS.sandWedge.maxSpeed);
     expect(chip).toBeGreaterThan(5);
   });
   it('full swings are untouched', () => {
     expect(meterMaxSpeed('driver', SURFACE.fairway, 200)).toBe(CLUBS.driver.maxSpeed);
-    expect(meterMaxSpeed('wedge', SURFACE.fairway, 80)).toBe(CLUBS.wedge.maxSpeed);
-    expect(meterMaxSpeed('wedge', SURFACE.green, 20)).toBe(CLUBS.wedge.maxSpeed); // on green you'd putt; no chip rescale
+    expect(meterMaxSpeed('sandWedge', SURFACE.fairway, 80)).toBe(CLUBS.sandWedge.maxSpeed);
+    expect(meterMaxSpeed('sandWedge', SURFACE.green, 20)).toBe(CLUBS.sandWedge.maxSpeed); // on green you'd putt; no chip rescale
   });
 });
 

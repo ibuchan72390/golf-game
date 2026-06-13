@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { CLUBS, launchVelocity } from './clubs';
 
+describe('CLUBS', () => {
+  it('has eight clubs', () => {
+    expect(Object.keys(CLUBS).length).toBe(8);
+  });
+});
+
 describe('launchVelocity', () => {
   it('full-power pure strike at aim 0 flies straight down -Z', () => {
     const v = launchVelocity(CLUBS.driver, { club: 'driver', aimDir: 0, power: 1, contactError: 0 }, 1);

@@ -3,10 +3,14 @@ import type { ClubId, ClubStats, ShotIntent, Vec3 } from './types';
 const DEG2RAD = Math.PI / 180;
 
 export const CLUBS: Record<ClubId, ClubStats> = {
-  driver: { name: 'Driver', maxSpeed: 70, launchDeg: 14, accuracy: 0.12 },
-  iron7: { name: '7 Iron', maxSpeed: 50, launchDeg: 22, accuracy: 0.08 },
-  wedge: { name: 'Wedge', maxSpeed: 30, launchDeg: 45, accuracy: 0.06 },
-  putter: { name: 'Putter', maxSpeed: 12, launchDeg: 0, accuracy: 0.02 },
+  driver:        { name: 'Driver',     maxSpeed: 70, launchDeg: 14, accuracy: 0.12, forgiveness: 0.15, spin: 0.1 },
+  wood3:         { name: '3 Wood',     maxSpeed: 62, launchDeg: 16, accuracy: 0.11, forgiveness: 0.2,  spin: 0.15 },
+  iron5:         { name: '5 Iron',     maxSpeed: 55, launchDeg: 20, accuracy: 0.09, forgiveness: 0.25, spin: 0.3 },
+  iron7:         { name: '7 Iron',     maxSpeed: 50, launchDeg: 22, accuracy: 0.08, forgiveness: 0.3,  spin: 0.4 },
+  iron9:         { name: '9 Iron',     maxSpeed: 44, launchDeg: 28, accuracy: 0.07, forgiveness: 0.35, spin: 0.5 },
+  pitchingWedge: { name: 'Pitching W', maxSpeed: 36, launchDeg: 38, accuracy: 0.06, forgiveness: 0.4,  spin: 0.65 },
+  sandWedge:     { name: 'Sand W',     maxSpeed: 30, launchDeg: 48, accuracy: 0.06, forgiveness: 0.4,  spin: 0.8 },
+  putter:        { name: 'Putter',     maxSpeed: 12, launchDeg: 0,  accuracy: 0.02, forgiveness: 0.5,  spin: 0 },
 };
 
 /**

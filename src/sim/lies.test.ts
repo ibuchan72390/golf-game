@@ -22,7 +22,7 @@ describe('strikeModifier', () => {
   });
   it('sand is brutal without the wedge, manageable with it', () => {
     const bare = strikeModifier(SURFACE.sand, 'iron7', 0.5);
-    const wedge = strikeModifier(SURFACE.sand, 'wedge', 0.5);
+    const wedge = strikeModifier(SURFACE.sand, 'sandWedge', 0.5);
     expect(bare.powerMul).toBeLessThan(0.55);
     expect(wedge.powerMul).toBeGreaterThan(0.75);
     expect(bare.errorMul).toBeGreaterThan(wedge.errorMul);
@@ -42,8 +42,8 @@ describe('resolveShot applies lie at strike', () => {
   });
   it('sand without wedge barely advances; wedge mostly recovers', () => {
     const bare = resolveShot(from(SURFACE.sand), swing).newState.ballPos.z;
-    const wedge = resolveShot(from(SURFACE.sand), { ...swing, club: 'wedge' }).newState.ballPos.z;
-    const clean = resolveShot(from(SURFACE.fairway), { ...swing, club: 'wedge' }).newState.ballPos.z;
+    const wedge = resolveShot(from(SURFACE.sand), { ...swing, club: 'sandWedge' }).newState.ballPos.z;
+    const clean = resolveShot(from(SURFACE.fairway), { ...swing, club: 'sandWedge' }).newState.ballPos.z;
     expect(Math.abs(bare)).toBeLessThan(Math.abs(resolveShot(from(SURFACE.fairway), swing).newState.ballPos.z) * 0.55);
     expect(Math.abs(wedge)).toBeGreaterThan(Math.abs(clean) * 0.7);
   });

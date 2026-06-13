@@ -20,12 +20,10 @@ async function holeOutCurrent(page: import('@playwright/test').Page) {
     if (s.holedOut) return;
     const d = s.distToPin;
     let club: string, power: number;
-    // Strand-2 checkpoint uses the M2 4-club bag (driver/iron7/wedge/putter).
-    // Task 11 Step 6 broadens this to the 8-club ids once Strand 3 lands.
     if (s.lie === GREEN) { club = 'putter'; power = 0.85; }
-    else if (s.lie === SAND) { club = 'wedge'; power = Math.min(1, (Math.sqrt(9.81 * Math.max(d, 5)) / 30) / 0.85); }
+    else if (s.lie === SAND) { club = 'sandWedge'; power = Math.min(1, (Math.sqrt(9.81 * Math.max(d, 5)) / 30) / 0.85); }
     else {
-      club = d > 130 ? 'driver' : d > 50 ? 'iron7' : 'wedge';
+      club = d > 130 ? 'driver' : d > 50 ? 'iron7' : 'sandWedge';
       const v = club === 'driver' ? Math.sqrt((9.81 * d) / 0.47) / 70 : Math.sqrt(9.81 * d) / (club === 'iron7' ? 50 : 30);
       power = Math.min(1, s.lie === ROUGH ? v / 0.72 : v);
     }

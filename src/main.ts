@@ -186,7 +186,7 @@ async function boot() {
       }
     }
 
-    const clubKeys: Record<string, ClubId> = { '1': 'driver', '2': 'iron7', '3': 'wedge', '4': 'putter' };
+    const clubKeys: Record<string, ClubId> = { '1': 'driver', '2': 'iron7', '3': 'sandWedge', '4': 'putter' };
     let spaceHeld = false;
 
     function onKeydown(e: KeyboardEvent) {

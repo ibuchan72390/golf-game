@@ -9,7 +9,7 @@ import { PROMPTS } from './prompts';
 import { scoreName } from '../sim/scoring';
 
 const LIE_NAMES = ['Fairway', 'Rough', 'Green', 'Sand'] as const;
-const CLUB_IDS: ClubId[] = ['driver', 'iron7', 'wedge', 'putter'];
+const CLUB_IDS: ClubId[] = ['driver', 'wood3', 'iron5', 'iron7', 'iron9', 'pitchingWedge', 'sandWedge', 'putter'];
 
 export interface Hud {
   update(phase: GamePhase, hole: HoleState, club: ClubId): void;

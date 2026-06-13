@@ -17,8 +17,8 @@ export function meterMaxSpeed(club: ClubId, lie: Surface, distToPin: number): nu
   if (club === 'putter') {
     return Math.min(CLUBS.putter.maxSpeed, Math.max(2, PUTT_DECEL * distToPin * PUTT_MARGIN));
   }
-  if (club === 'wedge' && lie !== SURFACE.green && distToPin < CHIP_RANGE_M) {
-    return Math.min(CLUBS.wedge.maxSpeed, Math.sqrt(9.81 * Math.max(distToPin, 5)) * 1.2);
+  if ((club === 'sandWedge' || club === 'pitchingWedge') && lie !== SURFACE.green && distToPin < CHIP_RANGE_M) {
+    return Math.min(CLUBS[club].maxSpeed, Math.sqrt(9.81 * Math.max(distToPin, 5)) * 1.2);
   }
   return CLUBS[club].maxSpeed;
 }

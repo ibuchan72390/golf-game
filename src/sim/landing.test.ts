@@ -17,7 +17,7 @@ beforeAll(async () => {
 });
 
 const drive: ShotIntent = { club: 'driver', aimDir: 0, power: 1, contactError: 0 };
-const wedgeFull: ShotIntent = { club: 'wedge', aimDir: 0, power: 1, contactError: 0 };
+const wedgeFull: ShotIntent = { club: 'sandWedge', aimDir: 0, power: 1, contactError: 0 };
 
 function check(seed: number, intent: ShotIntent) {
   const hole = generateHole(seed, 4);

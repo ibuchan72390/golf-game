@@ -1,15 +1,21 @@
 import type { HoleFile, Surface } from '../course/format';
 
-export type ClubId = 'driver' | 'iron7' | 'wedge' | 'putter';
+export type ClubId =
+  | 'driver' | 'wood3' | 'iron5' | 'iron7' | 'iron9'
+  | 'pitchingWedge' | 'sandWedge' | 'putter';
 
 export interface ClubStats {
   name: string;
-  /** ball speed in m/s at power = 1 */
+  /** ball speed in m/s at power = 1 (Power stat) */
   maxSpeed: number;
   /** launch angle in degrees */
   launchDeg: number;
-  /** yaw-dispersion scale in radians; deviation = contactError * accuracy * (0.5 + 0.5 * wobble) */
+  /** yaw-dispersion scale in radians; lower = tighter (Accuracy stat) */
   accuracy: number;
+  /** 0..1, higher = mishits punished less (Forgiveness stat) */
+  forgiveness: number;
+  /** 0..1, higher = more greenside check / less roll-out on green (Spin stat) */
+  spin: number;
 }
 
 export interface Vec3 {
