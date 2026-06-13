@@ -113,3 +113,40 @@ resource "auth0_connection_clients" "google" {
   connection_id   = auth0_connection.google.id
   enabled_clients = [auth0_client.spa.client_id]
 }
+
+# --- GitHub Actions secrets (VITE_* config baked into the build) ------------
+locals {
+  vite_secrets = merge(
+    {
+      VITE_SUPABASE_URL      = local.project_url
+      VITE_SUPABASE_ANON_KEY = data.supabase_apikeys.this.anon_key
+      VITE_OIDC_ISSUER       = local.issuer
+      VITE_OIDC_CLIENT_ID    = auth0_client.spa.client_id
+    },
+    var.oidc_audience == "" ? {} : { VITE_OIDC_AUDIENCE = var.oidc_audience },
+  )
+  use_environment = var.github_secret_environment != ""
+}
+
+# Repo-level secrets (prod: consumed by the existing Pages deploy build).
+resource "github_actions_secret" "repo" {
+  for_each        = local.use_environment ? {} : local.vite_secrets
+  repository      = var.github_repository
+  secret_name     = each.key
+  plaintext_value = each.value
+}
+
+# Environment-scoped secrets (qa: consumed by the future smoke-test job).
+resource "github_repository_environment" "this" {
+  count       = local.use_environment ? 1 : 0
+  repository  = var.github_repository
+  environment = var.github_secret_environment
+}
+
+resource "github_actions_environment_secret" "env" {
+  for_each        = local.use_environment ? local.vite_secrets : {}
+  repository      = var.github_repository
+  environment     = github_repository_environment.this[0].environment
+  secret_name     = each.key
+  plaintext_value = each.value
+}
