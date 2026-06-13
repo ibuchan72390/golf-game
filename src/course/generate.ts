@@ -3,7 +3,7 @@ import { createRng } from '../sim/rng';
 import { SURFACE, heightAt, type CourseFile, type HoleFile, type Surface } from './format';
 
 const CELL = 1;
-const WIDTH = 60; // cells
+const WIDTH = 80; // cells — wide enough that badly sliced drives stay on the grid
 const NOISE_WAVELENGTH = 16; // cells
 const NOISE_AMPLITUDE = 1.5; // meters
 
@@ -31,7 +31,10 @@ function valueNoise(seed: number, x: number, z: number): number {
 export function generateHole(seed: number): HoleFile {
   const rng = createRng(seed);
   const length = 90 + rng() * 90; // 90..180 m tee→pin
-  const depth = Math.ceil(length + 40); // cells (CELL=1)
+  // Deep enough that a full drive (carry+roll ≈ 205 m from the tee) can never
+  // overshoot the far edge of the heightfield — short par-3s previously let
+  // drives fly off the world and fall into the void.
+  const depth = Math.ceil(Math.max(length + 60, 235)); // cells (CELL=1)
   const tee = { x: 0, y: 0, z: -10 };
   const pinX = (rng() - 0.5) * 24;
   const pin = { x: pinX, y: 0, z: -(10 + length) };
