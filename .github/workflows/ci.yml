@@ -19,7 +19,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npx playwright install --with-deps chromium
-      - run: npx playwright test e2e/playthrough.spec.ts
+      - run: npx playwright test e2e/round.spec.ts e2e/upgrade.spec.ts e2e/prompts.spec.ts e2e/settings.spec.ts
       - name: Visual snapshots (hard gate once baselines exist)
         run: |
           if [ -d e2e/visual.spec.ts-snapshots ]; then
