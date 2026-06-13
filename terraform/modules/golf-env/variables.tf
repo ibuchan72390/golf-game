@@ -51,11 +51,6 @@ variable "google_oauth_client_secret" {
 }
 
 # --- GitHub -----------------------------------------------------------------
-variable "github_owner" {
-  description = "GitHub repository owner/org."
-  type        = string
-}
-
 variable "github_repository" {
   description = "GitHub repository name that consumes the VITE_* secrets."
   type        = string

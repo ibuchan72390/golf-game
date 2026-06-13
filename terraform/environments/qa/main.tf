@@ -40,7 +40,6 @@ module "env" {
   supabase_db_password      = var.supabase_db_password
   auth0_domain              = var.auth0_domain
   app_urls                  = var.app_urls
-  github_owner              = var.github_owner
   github_repository         = var.github_repository
   github_secret_environment = "qa" # GitHub Environment "qa" → consumed by the smoke job
   oidc_audience             = var.oidc_audience
