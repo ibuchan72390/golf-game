@@ -16,10 +16,11 @@ import { loadProfile, saveProfile, type InputScheme } from './save/profile';
 import { loadoutFromProfile, awardPoints, buyUpgrade } from './sim/progression';
 import { showUpgradeScreen } from './ui/upgrade';
 import { renderCourseGallery } from './dev/courses';
+import { CURATED_COURSES } from './course/curated';
 import type { ClubId, HoleState, ShotIntent } from './sim/types';
 import type { CameraMode } from './render/cameraRig';
 
-const CURATED: CuratedEntry[] = []; // filled in Strand 5
+const CURATED: CuratedEntry[] = CURATED_COURSES;
 
 async function boot() {
   const params = new URLSearchParams(location.search);
