@@ -1,7 +1,14 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { showFriends } from './friends';
 import type { FriendsView } from '../net/friends';
+
+// jsdom's selector engine resolves `#id` via getElementById (whole-document,
+// first match), so leftover roots from prior tests would shadow our scoped
+// lookups. Clear the body between tests to keep IDs unique.
+afterEach(() => {
+  document.body.innerHTML = '';
+});
 
 function root() {
   const r = document.createElement('div');

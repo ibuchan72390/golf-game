@@ -16,14 +16,6 @@ export interface FriendsCallbacks {
   onClose(): void;
 }
 
-/** Evict any pre-existing id registrations that would shadow our new elements. */
-function evictIds(ids: string[]): void {
-  for (const id of ids) {
-    const el = document.getElementById(id);
-    if (el) el.removeAttribute('id');
-  }
-}
-
 export function showFriends(
   root: HTMLElement,
   view: FriendsView,
@@ -32,17 +24,6 @@ export function showFriends(
 ): void {
   const esc = (s: string) =>
     s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]!));
-
-  // Evict any document-level IDs that will be re-used in the new markup so
-  // querySelector('#id') works correctly after innerHTML is set, even when
-  // multiple test roots share the same document (jsdom accumulates IDs).
-  const staticIds = ['friends-invite', 'friends-close', 'friends-invite-link', 'friends-copy'];
-  const dynamicIds = [
-    ...view.friends.map((f) => `friend-remove-${f.id}`),
-    ...view.incoming.map((r) => `friend-accept-${r.id}`),
-    ...view.incoming.map((r) => `friend-decline-${r.id}`),
-  ];
-  evictIds([...staticIds, ...dynamicIds]);
 
   const friendRows = view.friends.length
     ? view.friends
