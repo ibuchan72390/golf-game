@@ -5,6 +5,5 @@ export default defineConfig({
   optimizeDeps: { exclude: ['@dimforge/rapier3d-compat'] },
   test: {
     include: ['src/**/*.test.ts'],
-    environment: 'jsdom',
   },
 });

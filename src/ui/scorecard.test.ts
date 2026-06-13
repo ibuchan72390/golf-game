@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { renderScorecard } from './scorecard';
 import { makeScorecard, recordHole } from '../sim/scorecard';
