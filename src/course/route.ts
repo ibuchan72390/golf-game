@@ -32,7 +32,7 @@ export function parForLength(length: number): 3 | 4 | 5 {
  * lateral drift approaches the bound, so the whole hole fits the grid.
  */
 export function routeCenterline(seed: number, par: 3 | 4 | 5): Pt[] {
-  const rng = createRng(seed * 2654435761);
+  const rng = createRng(Math.imul(seed, 2654435761) >>> 0);
   const segs = segmentCount(par);
   const [lo, hi] = LENGTH_BANDS[par];
   const total = lo + rng() * (hi - lo);
