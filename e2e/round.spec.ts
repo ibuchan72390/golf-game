@@ -4,7 +4,7 @@ declare global {
   interface Window {
     __golfTest: {
       ready: boolean;
-      getState(): { phase: string; holedOut: boolean; lie: number; distToPin: number; club: string; ballPos: { x: number; y: number; z: number } };
+      getState(): { phase: string; holedOut: boolean; lie: number; distToPin: number; club: string; aimDir: number; ballPos: { x: number; y: number; z: number } };
       swing(intent: { club?: string; power?: number; contactError?: number }): void;
       placeBall(x: number, z: number): void;
       loadHole(seed: number): void;

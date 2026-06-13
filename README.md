@@ -8,7 +8,7 @@ Play it: `https://<username>.github.io/golf-game/`
 - `npm install` then `npm run dev`
 - Menu → Play a Round (curated course or random) → 9 holes with a scorecard → round summary
 - Menu → Upgrade Clubs spends skill points earned per round on the 8-club bag
-- Controls in a hole: ←/→ aim · hold-release (default): hold to charge, release, tap the band · 1–4 or tap to select club · ⚙ settings
+- Controls: ←/→ or the on-screen ◄ ► arrows to aim · hold-release (default): hold to charge, release, tap the band · tap a club chip (or 1–4) to select — each chip shows its approximate carry · ⚙ settings
 - `?round=N` boots straight into a round on seed N; `&instant=1` skips flight animation; `?dev=courses` shows the generator gallery
 
 ## Test
