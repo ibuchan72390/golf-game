@@ -6,8 +6,10 @@ Play it: `https://<username>.github.io/golf-game/`
 ## Develop
 
 - `npm install` then `npm run dev`
-- Controls: ←/→ aim · hold-release (default): hold to charge, release, tap the band · 1–4 or tap to select club · ⚙ settings (switch to 3-click)
-- `?seed=N` fixes the course + RNG seed; `&instant=1` skips flight animation; `?dev=courses` shows the generator gallery
+- Menu → Play a Round (curated course or random) → 9 holes with a scorecard → round summary
+- Menu → Upgrade Clubs spends skill points earned per round on the 8-club bag
+- Controls in a hole: ←/→ aim · hold-release (default): hold to charge, release, tap the band · 1–4 or tap to select club · ⚙ settings
+- `?round=N` boots straight into a round on seed N; `&instant=1` skips flight animation; `?dev=courses` shows the generator gallery
 
 ## Test
 
@@ -17,8 +19,7 @@ Play it: `https://<username>.github.io/golf-game/`
 
 ## Architecture
 
-See `docs/superpowers/specs/2026-06-11-golf-game-design.md`. Load-bearing rule:
-`src/sim/` never imports DOM or Three.js, and never calls `Math.random()`.
+See `docs/superpowers/specs/`. Load-bearing rules: `src/sim/` and `src/course/` never import DOM/Three and never call `Math.random()`/`Date.now()`; `resolveShot` is deterministic given `(state, intent, loadout)`; the `Round` orchestrates the single-hole `Game`; progression lives in the versioned save profile.
 
 ## License
 
