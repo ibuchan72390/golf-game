@@ -1,9 +1,9 @@
 // src/ui/hud.ts
 import type { GamePhase } from '../app/game';
-import type { ClubId, HoleState } from '../sim/types';
+import type { ClubId, ClubLoadout, HoleState } from '../sim/types';
 import type { SwingStage } from '../input/holdRelease';
 import type { InputScheme } from '../save/profile';
-import { CLUBS } from '../sim/clubs';
+import { CLUBS, approxCarry } from '../sim/clubs';
 import { SURFACE } from '../course/format';
 import { PROMPTS } from './prompts';
 import { scoreName } from '../sim/scoring';
@@ -16,6 +16,7 @@ export interface Hud {
   setMeter(value: number, stage: SwingStage, scheme: InputScheme): void;
   onClubSelect(cb: (club: ClubId) => void): void;
   onGear(cb: () => void): void;
+  setLoadout(loadout: ClubLoadout): void;
 }
 
 const chip = 'background:rgba(38,50,56,.88);color:#fff;padding:7px 14px;border-radius:16px;font-size:14px;font-weight:600;';
@@ -82,6 +83,13 @@ export function createHud(root: HTMLElement): Hud {
     },
     onGear(cb) {
       gearCb = cb;
+    },
+    setLoadout(loadout) {
+      for (const id of CLUB_IDS) {
+        const b = root.querySelector(`#club-${id}`) as HTMLElement;
+        const carry = approxCarry(id, loadout[id]);
+        b.textContent = carry > 0 ? `${CLUBS[id].name} · ≈${Math.round(carry)} m` : CLUBS[id].name;
+      }
     },
   };
 }

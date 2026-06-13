@@ -181,6 +181,7 @@ async function boot() {
     const hole = game.hole.hole;
     const scene = createScene(canvas, hole);
     const hud = createHud(hudRoot);
+    hud.setLoadout(loadout);
     const threeClick = new ThreeClickMeter();
     const holdRelease = new HoldReleaseMeter();
     const meter = () => (scheme === 'holdRelease' ? holdRelease : threeClick);
