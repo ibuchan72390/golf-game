@@ -49,6 +49,48 @@ async function boot() {
   let round: Round | null = null;
   let active: { update(dt: number): void; teardown(): void } | null = null;
 
+  // Per-hole hooks updated by mountHole; read dynamically by the boot-level __golfTest.
+  let holeHooks: {
+    getState(): { phase: string; strokes: number; ballPos: { x: number; y: number; z: number }; holedOut: boolean; lie: number; distToPin: number; club: string } | null;
+    swing(intent: Partial<ShotIntent>): void;
+    placeBall(x: number, z: number): void;
+    pin(): { x: number; z: number } | null;
+  } | null = null;
+
+  // Set up __golfTest once at boot time; per-hole hooks delegate via holeHooks.
+  (window as unknown as Record<string, unknown>).__golfTest = {
+    getState: () => holeHooks?.getState() ?? null,
+    swing: (intent: Partial<ShotIntent>) => holeHooks?.swing(intent),
+    placeBall: (x: number, z: number) => holeHooks?.placeBall(x, z),
+    get pin() { return holeHooks?.pin() ?? null; },
+    loadHole: (seed: number) => {
+      location.search = `?round=${seed}${instant ? '&instant=1' : ''}`;
+    },
+    roundState: () => {
+      const r = round;
+      return r
+        ? {
+            phase: r.phase,
+            index: r.index,
+            total: r.card.holes.reduce((s, h) => s + (h.strokes ?? 0), 0),
+            pars: r.card.holes.map((h) => h.par),
+          }
+        : null;
+    },
+    nextHole: () => {
+      const r = round;
+      if (r && r.phase === 'hole-complete') {
+        document.querySelector<HTMLElement>('#hole-next')?.click();
+      }
+    },
+    profileState: () => ({ skillPoints: profile.skillPoints, driverPower: profile.clubLevels.driver.power }),
+    grantPoints: (n: number) => {
+      profile = { ...profile, skillPoints: profile.skillPoints + n };
+      saveProfile(localStorage, profile);
+    },
+    ready: true,
+  };
+
   function clearScreens() {
     screenRoot.innerHTML = '';
     screenRoot.style.pointerEvents = 'none';
@@ -263,8 +305,8 @@ async function boot() {
     }
     raf = requestAnimationFrame(frame);
 
-    // Deterministic hooks for Playwright — not a public API.
-    (window as unknown as Record<string, unknown>).__golfTest = {
+    // Wire per-hole hooks so the boot-level __golfTest can delegate to the current game.
+    holeHooks = {
       getState: () => ({
         phase: game.phase,
         strokes: game.hole.strokes,
@@ -298,29 +340,7 @@ async function boot() {
         scene.setBallPosition(game.hole.ballPos);
         scene.frameBall();
       },
-      loadHole: (seed: number) => {
-        location.search = `?round=${seed}${instant ? '&instant=1' : ''}`;
-      },
-      pin: { x: hole.pin.x, z: hole.pin.z },
-      roundState: () => {
-        const r = round;
-        return r
-          ? {
-              phase: r.phase,
-              index: r.index,
-              total: r.card.holes.reduce((s, h) => s + (h.strokes ?? 0), 0),
-              pars: r.card.holes.map((h) => h.par),
-            }
-          : null;
-      },
-      nextHole: () => {
-        const r = round;
-        if (r && r.phase === 'hole-complete') {
-          document.querySelector<HTMLElement>('#hole-next')?.click();
-        }
-      },
-      profileState: () => ({ skillPoints: profile.skillPoints, driverPower: profile.clubLevels.driver.power }),
-      ready: true,
+      pin: () => ({ x: hole.pin.x, z: hole.pin.z }),
     };
 
     return {
@@ -328,6 +348,7 @@ async function boot() {
       teardown: () => {
         cancelAnimationFrame(raf);
         scene.dispose();
+        holeHooks = null;
         window.removeEventListener('keydown', onKeydown);
         window.removeEventListener('keyup', onKeyup);
         canvas.removeEventListener('pointerdown', pressDown);

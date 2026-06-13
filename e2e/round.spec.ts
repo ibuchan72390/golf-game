@@ -6,8 +6,13 @@ declare global {
       ready: boolean;
       getState(): { phase: string; holedOut: boolean; lie: number; distToPin: number; club: string; ballPos: { x: number; y: number; z: number } };
       swing(intent: { club?: string; power?: number; contactError?: number }): void;
+      placeBall(x: number, z: number): void;
+      loadHole(seed: number): void;
+      pin: { x: number; z: number } | null;
       roundState(): { phase: string; index: number; total: number; pars: number[] } | null;
       nextHole(): void;
+      profileState(): { skillPoints: number; driverPower: number };
+      grantPoints(n: number): void;
     };
   }
 }
