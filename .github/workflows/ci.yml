@@ -53,6 +53,16 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build -- --base=/${{ github.event.repository.name }}/
+        # Multiplayer config is baked in at build time. Unset secrets resolve to
+        # empty strings → readConfig() returns null → multiplayer stays dormant
+        # (single-player only). Add the secrets to light it up; no code change.
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_OIDC_ISSUER: ${{ secrets.VITE_OIDC_ISSUER }}
+          VITE_OIDC_CLIENT_ID: ${{ secrets.VITE_OIDC_CLIENT_ID }}
+          VITE_OIDC_AUDIENCE: ${{ secrets.VITE_OIDC_AUDIENCE }}
+          VITE_OIDC_REDIRECT_URI: ${{ secrets.VITE_OIDC_REDIRECT_URI }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

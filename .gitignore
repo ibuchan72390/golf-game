@@ -5,3 +5,7 @@ dist/
 test-results/
 playwright-report/
 .playwright-mcp/
+# Local multiplayer config (real backend). .env.example is the committed template.
+.env
+.env.local
+.env.*.local

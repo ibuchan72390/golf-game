@@ -14,6 +14,30 @@ needs no setup and CI passes without secrets.
 | `VITE_OIDC_AUDIENCE` (optional) | Auth0 API identifier, if using an API audience |
 | `VITE_OIDC_REDIRECT_URI` (optional) | Defaults to the app's origin+path |
 
+> **These are public client config, not secrets.** Vite inlines `VITE_*` into the
+> shipped bundle; the Supabase **anon** key + OIDC public config are designed to be
+> public (RLS + JWT validation enforce access). **Never** add the Supabase
+> **service-role** key here — it bypasses RLS and would leak in the bundle.
+
+## How the values reach a build
+
+- **Production (GitHub Pages):** the deploy job's build step injects them from
+  GitHub Actions secrets (already wired in `.github/workflows/ci.yml`). Seed them:
+  ```bash
+  gh secret set VITE_SUPABASE_URL
+  gh secret set VITE_SUPABASE_ANON_KEY
+  gh secret set VITE_OIDC_ISSUER
+  gh secret set VITE_OIDC_CLIENT_ID
+  gh secret set VITE_OIDC_AUDIENCE        # optional
+  gh secret set VITE_OIDC_REDIRECT_URI    # optional
+  ```
+  (each prompts for the value; or use Settings → Secrets and variables → Actions).
+  Then trigger a deploy (push to `main` or re-run the workflow). Until they exist,
+  the secrets resolve to empty strings and multiplayer stays dormant.
+- **Local dev (real backend):** put the same `VITE_*` in a `.env` file (gitignored;
+  copy `.env.example`) and `npm run dev`. For UI work with no backend at all, use
+  `npm run dev` and open `/?mp=fake&user=you` (in-memory fake, no setup).
+
 ## Auth0
 1. Create a **Single Page Application**.
 2. Allowed Callback/Logout/Web-Origins URLs: your dev (`http://localhost:5173`) and prod (`https://<user>.github.io/golf-game/`) URLs.
