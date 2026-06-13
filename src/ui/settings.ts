@@ -4,6 +4,7 @@ import type { InputScheme } from '../save/profile';
 export interface SettingsPanel {
   toggle(): void;
   setScheme(scheme: InputScheme): void;
+  destroy(): void;
 }
 
 export function createSettingsPanel(
@@ -41,6 +42,9 @@ export function createSettingsPanel(
     },
     setScheme: (scheme) => {
       for (const r of radios) r.checked = r.value === scheme;
+    },
+    destroy: () => {
+      panel.remove();
     },
   };
 }

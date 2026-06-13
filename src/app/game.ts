@@ -49,7 +49,7 @@ export class Game {
   private prevPos: Vec3 | null = null;
   private landed = false;
 
-  constructor(seed: number, holeFile: HoleFile, private readonly view: GameView) {
+  constructor(seed: number, holeFile: HoleFile, private view: GameView) {
     this.hole = makeHoleState(holeFile, seed);
     this.aimDir = this.aimToHole();
     this.syncView();
@@ -121,6 +121,14 @@ export class Game {
       this.view.frameBall();
       this.setPhase(this.hole.holedOut ? 'holed' : 'aiming');
     }
+  }
+
+  rebindView(view: GameView): void {
+    this.view = view;
+  }
+
+  syncToView(): void {
+    this.syncView();
   }
 
   private syncView(): void {
