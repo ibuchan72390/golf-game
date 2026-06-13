@@ -19,6 +19,13 @@ import { renderCourseGallery } from './dev/courses';
 import { CURATED_COURSES } from './course/curated';
 import type { ClubId, HoleState, ShotIntent } from './sim/types';
 import type { CameraMode } from './render/cameraRig';
+import { multiplayerConfig, isMultiplayerEnabled } from './net/config';
+import { createAuthProvider, type AuthProvider } from './net/auth';
+import { createSupabaseClient } from './net/supabase';
+import { SupabaseMultiplayerService, type MultiplayerService } from './net/service';
+import { FakeMultiplayerService, makeFakeStore } from './net/fakeService';
+import { friendsViewModel } from './net/friends';
+import { showFriends } from './ui/friends';
 
 const CURATED: CuratedEntry[] = CURATED_COURSES;
 
@@ -30,6 +37,34 @@ async function boot() {
   }
 
   await initPhysics();
+
+  // --- Multiplayer wiring (no-op + hidden when env is absent) ----------------
+  const fakeUserId = params.get('mp') === 'fake' ? (params.get('user') ?? 'tester') : null;
+  const auth: AuthProvider = createAuthProvider(
+    multiplayerConfig,
+    fakeUserId ? { fakeUser: { id: fakeUserId, name: fakeUserId } } : {},
+  );
+  let mpService: MultiplayerService | null = null;
+  const fakeStore = fakeUserId ? makeFakeStore() : null;
+
+  async function ensureService(): Promise<MultiplayerService | null> {
+    if (mpService) return mpService;
+    const user = auth.getUser();
+    if (!user) return null;
+    if (fakeStore) {
+      mpService = new FakeMultiplayerService(fakeStore, user.id);
+    } else if (multiplayerConfig) {
+      mpService = new SupabaseMultiplayerService(createSupabaseClient(multiplayerConfig, auth), user.id);
+    }
+    return mpService;
+  }
+
+  const mpAvailable = isMultiplayerEnabled() || fakeUserId !== null;
+  // Resolve any OIDC redirect on boot (no-op for Null/Test providers).
+  const bootUser = await auth.init();
+  // If we returned from a redirect mid-friend-invite, the code is preserved below.
+  const pendingFriendCode = params.get('friend');
+
   const instant = params.has('instant');
   const canvas = document.querySelector('#game-canvas') as HTMLCanvasElement;
   const hudRoot = document.querySelector('#hud') as HTMLElement;
@@ -90,6 +125,8 @@ async function boot() {
       saveProfile(localStorage, profile);
     },
     ready: true,
+    multiplayerAvailable: () => isMultiplayerEnabled(),
+    signedInUser: () => auth.getUser(),
   };
 
   function clearScreens() {
@@ -112,7 +149,50 @@ async function boot() {
         /* settings panel toggles in-hole; from menu just go back */
         toMenu();
       },
+      ...(mpAvailable ? { onFriends: () => void startMultiplayer() } : {}),
     });
+  }
+
+  async function openFriends() {
+    const svc = await ensureService();
+    if (!svc) return; // not signed in
+    let inviteLink: string | null = null;
+    const renderFriends = async () => {
+      const { rows, names } = await svc.listFriendships();
+      const view = friendsViewModel(rows, svc.myUserId(), names);
+      showFriends(screen(), view, inviteLink, {
+        onInvite: async () => {
+          const code = await svc.createFriendInvite();
+          inviteLink = `${location.origin}${location.pathname}?friend=${encodeURIComponent(code)}`;
+          await renderFriends();
+        },
+        onAccept: async (id) => { await svc.acceptRequest(id); await renderFriends(); },
+        onDecline: async (id) => { await svc.declineRequest(id); await renderFriends(); },
+        onRemove: async (id) => { await svc.removeFriend(id); await renderFriends(); },
+        onClose: toMenu,
+      });
+    };
+    await renderFriends();
+  }
+
+  async function startMultiplayer() {
+    // Sign in if needed (OIDC redirect navigates away; Test/Null resolve inline).
+    if (!auth.getUser()) {
+      await auth.login();
+      return; // redirect in flight for real OIDC
+    }
+    const svc = await ensureService();
+    if (!svc) return;
+    // Ensure a profile row exists (default display name = OIDC name).
+    const existing = await svc.getProfile(svc.myUserId());
+    if (!existing) {
+      const name = (auth.getUser()!.name || 'Golfer').slice(0, 40);
+      await svc.upsertProfile(name);
+    }
+    if (pendingFriendCode) {
+      try { await svc.claimFriendInvite(pendingFriendCode); } catch { /* expired/own/used */ }
+    }
+    await openFriends();
   }
 
   function openUpgrade() {
@@ -366,6 +446,8 @@ async function boot() {
 
   toMenu();
   if (params.has('round')) startRound(Number(params.get('round')));
+  // Returned from an OIDC redirect (or fake session) → continue the friends flow.
+  if (mpAvailable && (bootUser || pendingFriendCode)) void startMultiplayer();
 }
 
 void boot();
