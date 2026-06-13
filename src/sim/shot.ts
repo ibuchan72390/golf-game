@@ -102,6 +102,7 @@ export function resolveShot(state: HoleState, intent: ShotIntent, loadout: ClubL
     const trajectory: TrajectorySample[] = [];
     let holedOut = false;
     let slowStreak = 0;
+    const shotSpin = loadout[intent.club].spin; // 0..0.95
 
     for (let step = 0; step < MAX_STEPS; step++) {
       world.step();
@@ -156,10 +157,11 @@ export function resolveShot(state: HoleState, intent: ShotIntent, loadout: ClubL
       // grass grabs a slow ball); on the green it stays low so lag putts keep
       // their delicate roll-out.
       const settleGate = surf === SURFACE.green ? 0.2 : 0.6;
+      const greenBite = surf === SURFACE.green ? 1 + shotSpin * 2.5 : 1; // spin → extra check
       body.setLinearDamping(
         grounded
           ? Math.max(
-              speed < settleGate ? GROUND_DAMPING_SLOW : SURFACE_PHYSICS[surf].damping,
+              (speed < settleGate ? GROUND_DAMPING_SLOW : SURFACE_PHYSICS[surf].damping) * greenBite,
               settleRamp,
             )
           : AIR_DAMPING,

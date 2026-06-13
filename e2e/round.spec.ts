@@ -23,8 +23,9 @@ async function holeOutCurrent(page: import('@playwright/test').Page) {
     if (s.lie === GREEN) { club = 'putter'; power = 0.85; }
     else if (s.lie === SAND) { club = 'sandWedge'; power = Math.min(1, (Math.sqrt(9.81 * Math.max(d, 5)) / 30) / 0.85); }
     else {
-      club = d > 130 ? 'driver' : d > 50 ? 'iron7' : 'sandWedge';
-      const v = club === 'driver' ? Math.sqrt((9.81 * d) / 0.47) / 70 : Math.sqrt(9.81 * d) / (club === 'iron7' ? 50 : 30);
+      club = d > 200 ? 'driver' : d > 130 ? 'iron5' : d > 60 ? 'iron9' : 'pitchingWedge';
+      const spd = club === 'driver' ? 70 : club === 'iron5' ? 55 : club === 'iron9' ? 44 : 36;
+      const v = Math.sqrt(9.81 * d) / spd;
       power = Math.min(1, s.lie === ROUGH ? v / 0.72 : v);
     }
     await page.evaluate(([c, p]) => window.__golfTest.swing({ club: c as string, power: p as number, contactError: 0 }), [club, power]);

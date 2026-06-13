@@ -40,9 +40,10 @@ export const BASE_LOADOUT: ClubLoadout = Object.fromEntries(
  * scales how much of the club's max dispersion this contactError costs.
  */
 export function launchVelocity(club: ClubStats, intent: ShotIntent, wobble: number): Vec3 {
+  const ce = intent.contactError * (1 - club.forgiveness); // forgiveness softens mishits
   const speed = club.maxSpeed * intent.power;
-  const yaw = intent.aimDir + intent.contactError * club.accuracy * (0.5 + 0.5 * wobble);
-  const pitch = club.launchDeg * DEG2RAD * (1 - 0.2 * Math.abs(intent.contactError));
+  const yaw = intent.aimDir + ce * club.accuracy * (0.5 + 0.5 * wobble);
+  const pitch = club.launchDeg * DEG2RAD * (1 - 0.2 * Math.abs(ce));
   return {
     x: speed * Math.cos(pitch) * Math.sin(yaw),
     y: speed * Math.sin(pitch),
