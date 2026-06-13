@@ -42,5 +42,7 @@ test('upgrade screen', async ({ page }) => {
 test('course gallery', async ({ page }) => {
   await page.goto('/?dev=courses');
   await page.waitForTimeout(500);
-  await expect(page).toHaveScreenshot('dev-courses.png', { fullPage: true });
+  // The gallery is a tall full-page render (4 courses × 9 hole canvases); capturing
+  // and stabilizing it takes longer than the 5 s default on CI, so allow more time.
+  await expect(page).toHaveScreenshot('dev-courses.png', { fullPage: true, timeout: 20000 });
 });
