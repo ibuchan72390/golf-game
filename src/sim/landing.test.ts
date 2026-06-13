@@ -20,7 +20,7 @@ const drive: ShotIntent = { club: 'driver', aimDir: 0, power: 1, contactError: 0
 const wedgeFull: ShotIntent = { club: 'wedge', aimDir: 0, power: 1, contactError: 0 };
 
 function check(seed: number, intent: ShotIntent) {
-  const hole = generateHole(seed);
+  const hole = generateHole(seed, 4);
   const { trajectory, newState } = resolveShot(makeHoleState(hole, seed), intent);
 
   // Never tunnels below the terrain mid-flight. A high-speed impact may

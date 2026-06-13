@@ -31,7 +31,7 @@ async function boot() {
   const profile = loadProfile(localStorage);
   let scheme: InputScheme = profile.settings.inputScheme;
 
-  const hole = generateHole(seed);
+  const hole = generateHole(seed, 3);
   const scene = createScene(canvas, hole);
   const hud = createHud(hudRoot);
 

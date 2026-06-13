@@ -10,7 +10,7 @@ export function renderCourseGallery(root: HTMLElement, count = 12): void {
   root.innerHTML = '';
   root.style.cssText = 'display:flex;flex-wrap:wrap;gap:16px;padding:16px;background:#263238;min-height:100vh;align-content:flex-start;';
   for (let seed = 1; seed <= count; seed++) {
-    const hole = generateHole(seed);
+    const hole = generateHole(seed, 3);
     const { width, depth } = hole.grid;
     const px = 2;
     const wrap = document.createElement('div');
