@@ -1,0 +1,84 @@
+# --- Supabase project + API keys -------------------------------------------
+resource "supabase_project" "this" {
+  organization_id   = var.supabase_organization_id
+  name              = "golf-${var.env}"
+  database_password = var.supabase_db_password
+  region            = var.supabase_region
+  instance_size     = var.supabase_instance_size
+  # Keep legacy JWT-based keys on so the anon_key data source resolves; the app
+  # uses the anon key as the apikey header alongside the OIDC bearer token.
+  legacy_api_keys_enabled = true
+
+  lifecycle {
+    ignore_changes = [instance_size]
+  }
+}
+
+data "supabase_apikeys" "this" {
+  project_ref = supabase_project.this.id
+}
+
+locals {
+  project_ref = supabase_project.this.id
+  project_url = "https://${supabase_project.this.id}.supabase.co"
+  issuer      = "https://${var.auth0_domain}/"
+}
+
+# --- Register Auth0 as a Supabase third-party-auth (OIDC) issuer ------------
+# The supabase provider does not model third-party auth, so call the Management
+# API. Idempotent: only POSTs if the issuer is not already registered. Requires
+# SUPABASE_ACCESS_TOKEN in the apply environment.
+resource "terraform_data" "third_party_auth" {
+  triggers_replace = {
+    project = local.project_ref
+    issuer  = local.issuer
+  }
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    environment = {
+      REF    = local.project_ref
+      ISSUER = local.issuer
+    }
+    command = <<-EOT
+      set -euo pipefail
+      base="https://api.supabase.com/v1/projects/$REF/config/auth/third-party-auth"
+      existing=$(curl -sf -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" "$base" || echo '[]')
+      if echo "$existing" | grep -q "$ISSUER"; then
+        echo "third-party-auth issuer already registered: $ISSUER"
+      else
+        curl -sf -X POST "$base" \
+          -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d "{\"oidc_issuer_url\": \"$ISSUER\"}"
+        echo "registered third-party-auth issuer: $ISSUER"
+      fi
+    EOT
+  }
+
+  depends_on = [supabase_project.this]
+}
+
+# --- Apply the SQL migration to the new project -----------------------------
+# supabase/migrations is the source of truth for schema + RLS. Re-runs when any
+# migration file changes. Requires the Supabase CLI + SUPABASE_ACCESS_TOKEN.
+resource "terraform_data" "schema_push" {
+  triggers_replace = {
+    project = local.project_ref
+    migrations = sha256(join(",", [
+      for f in fileset("${var.repo_root}/supabase/migrations", "*.sql") :
+      filesha256("${var.repo_root}/supabase/migrations/${f}")
+    ]))
+  }
+
+  provisioner "local-exec" {
+    interpreter = ["bash", "-c"]
+    working_dir = var.repo_root
+    environment = {
+      DBURL = "postgresql://postgres:${var.supabase_db_password}@db.${local.project_ref}.supabase.co:5432/postgres"
+    }
+    command = "supabase db push --db-url \"$DBURL\" --yes"
+  }
+
+  depends_on = [supabase_project.this]
+}
