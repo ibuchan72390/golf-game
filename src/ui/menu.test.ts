@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import { showMenu, showCourseSelect, showRoundSummary, showHoleComplete } from './menu';
 import { makeScorecard, recordHole } from '../sim/scorecard';
 
@@ -10,6 +10,10 @@ function root() {
 }
 
 describe('menu screens', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
   it('menu fires Play / Upgrade / Settings callbacks', () => {
     const r = root();
     const onPlay = vi.fn(), onUpgrade = vi.fn(), onSettings = vi.fn();
@@ -51,5 +55,19 @@ describe('menu screens', () => {
     expect(r.textContent).toContain('Birdie');
     (r.querySelector('#hole-next') as HTMLElement).click();
     expect(onNext).toHaveBeenCalled();
+  });
+
+  it('renders Friends button only when onFriends is provided and fires it', () => {
+    const r = root();
+    const base = { onPlay: vi.fn(), onUpgrade: vi.fn(), onSettings: vi.fn() };
+    showMenu(r, base);
+    expect(r.querySelector('#menu-friends')).toBeNull();
+    document.body.removeChild(r);
+
+    const r2 = root();
+    const onFriends = vi.fn();
+    showMenu(r2, { ...base, onFriends });
+    (r2.querySelector('#menu-friends') as HTMLElement).click();
+    expect(onFriends).toHaveBeenCalled();
   });
 });

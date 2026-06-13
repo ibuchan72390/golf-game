@@ -11,19 +11,27 @@ export interface MenuCallbacks {
   onPlay(): void;
   onUpgrade(): void;
   onSettings(): void;
+  onFriends?(): void;
 }
 
 export function showMenu(root: HTMLElement, cb: MenuCallbacks): void {
+  const friendsBtn = cb.onFriends
+    ? `<button id="menu-friends" style="${btn}background:#ef6c00;">Play with Friends</button>`
+    : '';
   root.innerHTML = `
     <div style="${overlay}">
       <div style="font-size:46px;font-weight:900;color:#1b5e20;text-shadow:0 2px 0 #fff;">⛳ Goofy Golf</div>
       <button id="menu-play" style="${btn}">Play a Round</button>
+      ${friendsBtn}
       <button id="menu-upgrade" style="${btn}background:#37474f;">Upgrade Clubs</button>
       <button id="menu-settings" style="${btn}background:#546e7a;">Settings</button>
     </div>`;
   (root.querySelector('#menu-play') as HTMLElement).onclick = cb.onPlay;
   (root.querySelector('#menu-upgrade') as HTMLElement).onclick = cb.onUpgrade;
   (root.querySelector('#menu-settings') as HTMLElement).onclick = cb.onSettings;
+  if (cb.onFriends) {
+    (root.querySelector('#menu-friends') as HTMLElement).onclick = cb.onFriends;
+  }
 }
 
 export interface CuratedEntry {
