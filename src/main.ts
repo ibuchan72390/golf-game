@@ -184,6 +184,9 @@ async function boot() {
       scene.setBallPosition(game.hole.ballPos);
       scene.frameBall();
     },
+    loadHole: (seed: number) => {
+      location.search = `?seed=${seed}${instant ? '&instant=1' : ''}`;
+    },
     pin: { x: hole.pin.x, z: hole.pin.z },
     ready: true,
   };

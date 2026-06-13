@@ -79,6 +79,11 @@ export function createScene(canvas: HTMLCanvasElement, hole: HoleFile): GameScen
   flag.position.set(hole.pin.x + 0.4, pinY + 1.9, hole.pin.z);
   scene.add(flag);
 
+  const flagOutline = outlineShell(flag, 1.2);
+  flagOutline.rotation.copy(flag.rotation);
+  flagOutline.position.copy(flag.position);
+  scene.add(flagOutline);
+
   const ball = new THREE.Mesh(
     new THREE.SphereGeometry(0.12, 16, 12),
     new THREE.MeshToonMaterial({ color: 0xffffff, gradientMap }),

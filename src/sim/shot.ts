@@ -75,6 +75,7 @@ export function resolveShot(state: HoleState, intent: ShotIntent): ShotResult {
 
     const rng = createRng(state.seed + state.strokes * 1013);
     const lieAtStrike = surfaceAt(state.hole, state.ballPos.x, state.ballPos.z);
+    // RNG draw order is load-bearing for determinism: lie roll MUST precede launch wobble.
     const mod = strikeModifier(lieAtStrike, intent.club, rng());
     const adjusted: ShotIntent = {
       ...intent,
