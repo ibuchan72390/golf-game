@@ -125,7 +125,7 @@ async function boot() {
       saveProfile(localStorage, profile);
     },
     ready: true,
-    multiplayerAvailable: () => isMultiplayerEnabled(),
+    multiplayerAvailable: () => mpAvailable,
     signedInUser: () => auth.getUser(),
   };
 
@@ -447,7 +447,8 @@ async function boot() {
   toMenu();
   if (params.has('round')) startRound(Number(params.get('round')));
   // Returned from an OIDC redirect (or fake session) → continue the friends flow.
-  if (mpAvailable && (bootUser || pendingFriendCode)) void startMultiplayer();
+  // Skip when booting straight into a round (?round=) so we don't overlay it.
+  if (mpAvailable && !params.has('round') && (bootUser || pendingFriendCode)) void startMultiplayer();
 }
 
 void boot();
