@@ -3,6 +3,18 @@
 Multiplayer is **disabled** unless all required env vars are set. Single-player
 needs no setup and CI passes without secrets.
 
+## Provisioning the backend
+
+Two paths:
+
+- **Terraform (recommended, reproducible):** `terraform/` provisions the Supabase
+  project, Auth0 app, schema, and GitHub `VITE_*` secrets for `prod` (and `qa`)
+  from one reusable module. See [`terraform/README.md`](../terraform/README.md)
+  for the one-time bootstrap + `terraform apply`. After `apply`, just trigger a
+  deploy.
+- **Manual (below):** create the Supabase + Auth0 projects by hand and
+  `gh secret set` the values. Use this only if you're not using Terraform.
+
 ## Required env (`.env`, or GitHub Actions secrets at build time)
 
 | Var | Source |
