@@ -21,6 +21,13 @@ test('friends screen is reachable and can generate an invite link', async ({ pag
   const link = page.locator('#friends-invite-link');
   await expect(link).toBeVisible();
   await expect(link).toHaveValue(/\?friend=invite-alice-0/);
+
+  // Back → the menu shows the (enabled) "Play with Friends" button, which reopens
+  // the friends screen. Covers the #menu-friends button + handler when enabled.
+  await page.locator('#friends-close').click();
+  await expect(page.locator('#menu-friends')).toBeVisible();
+  await page.locator('#menu-friends').click();
+  await expect(page.locator('#friends-invite')).toBeVisible();
 });
 
 test('claiming an invite establishes a friendship', async ({ page }) => {
