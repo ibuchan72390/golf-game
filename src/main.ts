@@ -52,7 +52,7 @@ async function boot() {
 
   // Per-hole hooks updated by mountHole; read dynamically by the boot-level __golfTest.
   let holeHooks: {
-    getState(): { phase: string; strokes: number; ballPos: { x: number; y: number; z: number }; holedOut: boolean; lie: number; distToPin: number; club: string } | null;
+    getState(): { phase: string; strokes: number; ballPos: { x: number; y: number; z: number }; holedOut: boolean; lie: number; distToPin: number; club: string; aimDir: number } | null;
     swing(intent: Partial<ShotIntent>): void;
     placeBall(x: number, z: number): void;
     pin(): { x: number; z: number } | null;
@@ -208,6 +208,7 @@ async function boot() {
     });
     hud.onGear(() => settings.toggle());
     hud.onClubSelect((club) => game.setClub(club));
+    hud.onAim((dir) => game.adjustAim(dir * 0.03));
     game.syncToView(); // re-emit current state to freshly-mounted scene/hud
 
     function fireSwing(power: number, contactError: number): void {
@@ -317,6 +318,7 @@ async function boot() {
         lie: game.hole.lie,
         distToPin: game.distToPin(),
         club: game.club,
+        aimDir: game.aimDir,
       }),
       swing: (intent: Partial<ShotIntent>) => {
         threeClick.reset();

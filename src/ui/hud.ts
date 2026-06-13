@@ -17,6 +17,7 @@ export interface Hud {
   onClubSelect(cb: (club: ClubId) => void): void;
   onGear(cb: () => void): void;
   setLoadout(loadout: ClubLoadout): void;
+  onAim(cb: (dir: number) => void): void;
 }
 
 const chip = 'background:rgba(38,50,56,.88);color:#fff;padding:7px 14px;border-radius:16px;font-size:14px;font-weight:600;';
@@ -34,6 +35,10 @@ export function createHud(root: HTMLElement): Hud {
       <div id="hud-meter-target" style="position:absolute;left:10%;top:-4px;width:3px;height:28px;background:#ffca28;"></div>
       <div id="hud-meter-fill" style="position:absolute;left:0;top:0;height:100%;width:0%;background:linear-gradient(90deg,#66bb6a,#ffca28,#ef5350);border-radius:9px;"></div>
     </div>
+    <div id="aim-controls" style="position:absolute;bottom:46px;right:12px;display:flex;gap:10px;pointer-events:auto;">
+      <button id="aim-left" style="${chip}border:none;cursor:pointer;font-size:22px;width:56px;height:56px;border-radius:28px;display:flex;align-items:center;justify-content:center;">◄</button>
+      <button id="aim-right" style="${chip}border:none;cursor:pointer;font-size:22px;width:56px;height:56px;border-radius:28px;display:flex;align-items:center;justify-content:center;">►</button>
+    </div>
     <div id="hud-help" style="position:absolute;bottom:18px;right:12px;color:rgba(255,255,255,.9);font-size:12px;text-align:right;">←/→ aim · 1-4 club</div>
     <style>@keyframes hudpulse{0%,100%{opacity:1}50%{opacity:.55}}</style>
   `;
@@ -42,6 +47,9 @@ export function createHud(root: HTMLElement): Hud {
   const prompt = get('#hud-prompt'), fill = get('#hud-meter-fill');
   const band = get('#hud-meter-band'), target = get('#hud-meter-target');
   const clubsEl = get('#hud-clubs'), gear = get('#hud-gear');
+  const aimControls = get('#aim-controls');
+  const aimLeft = get('#aim-left'), aimRight = get('#aim-right');
+  let aimCb: (dir: number) => void = () => {};
 
   let clubCb: (club: ClubId) => void = () => {};
   let gearCb: () => void = () => {};
@@ -54,6 +62,31 @@ export function createHud(root: HTMLElement): Hud {
     clubsEl.appendChild(b);
   }
   gear.addEventListener('click', () => gearCb());
+
+  function bindAim(btn: HTMLElement, dir: number): void {
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    };
+    btn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      aimCb(dir); // immediate nudge
+      stop();
+      timer = setInterval(() => aimCb(dir), 90); // hold-to-repeat
+    });
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) {
+      btn.addEventListener(ev, (e) => {
+        (e as Event).stopPropagation();
+        stop();
+      });
+    }
+  }
+  bindAim(aimLeft, -1);
+  bindAim(aimRight, 1);
 
   return {
     update(phase, hole, club) {
@@ -70,6 +103,7 @@ export function createHud(root: HTMLElement): Hud {
         b.style.background = id === club ? '#ffca28' : 'rgba(38,50,56,.88)';
         b.style.color = id === club ? '#263238' : '#fff';
       }
+      aimControls.style.display = phase === 'aiming' ? 'flex' : 'none';
     },
     setMeter(value, stage, scheme) {
       fill.style.width = `${(value * 100).toFixed(1)}%`;
@@ -90,6 +124,9 @@ export function createHud(root: HTMLElement): Hud {
         const carry = approxCarry(id, loadout[id]);
         b.textContent = carry > 0 ? `${CLUBS[id].name} · ≈${Math.round(carry)} m` : CLUBS[id].name;
       }
+    },
+    onAim(cb) {
+      aimCb = cb;
     },
   };
 }
