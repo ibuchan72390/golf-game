@@ -1,0 +1,6 @@
+# Minimal Supabase CLI project config. The hosted project is provisioned by
+# Terraform; this file just lets `supabase db push` find the migrations dir.
+project_id = "golf-game"
+
+[db]
+major_version = 15

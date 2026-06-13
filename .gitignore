@@ -9,3 +9,15 @@ playwright-report/
 .env
 .env.local
 .env.*.local
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars.local
+override.tf
+override.tf.json
+.terraformrc
+terraform.rc
