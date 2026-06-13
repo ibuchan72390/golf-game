@@ -1,11 +1,11 @@
 import RAPIER from '@dimforge/rapier3d-compat';
-import { CLUBS, launchVelocity } from './clubs';
+import { launchVelocity } from './clubs';
 import { createRng } from './rng';
 import { heightAt, surfaceAt, SURFACE } from '../course/format';
 import type { HoleFile } from '../course/format';
 import { strikeModifier } from './lies';
 import { AIR_DAMPING, SURFACE_PHYSICS } from './surfaces';
-import type { HoleState, ShotIntent, ShotResult, TrajectorySample } from './types';
+import type { ClubLoadout, HoleState, ShotIntent, ShotResult, TrajectorySample } from './types';
 
 /**
  * Cartoon-sized physics ball (matches the rendered ball). A real golf ball
@@ -65,7 +65,7 @@ export function initPhysics(): Promise<unknown> {
  * Deterministically simulate one shot to rest. Fresh Rapier world per call +
  * fixed timestep + seeded RNG ⇒ identical results everywhere, forever.
  */
-export function resolveShot(state: HoleState, intent: ShotIntent): ShotResult {
+export function resolveShot(state: HoleState, intent: ShotIntent, loadout: ClubLoadout): ShotResult {
   const world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
   world.timestep = TIMESTEP;
   try {
@@ -96,7 +96,7 @@ export function resolveShot(state: HoleState, intent: ShotIntent): ShotResult {
       power: intent.power * mod.powerMul,
       contactError: Math.max(-1, Math.min(1, intent.contactError * mod.errorMul)),
     };
-    const v = launchVelocity(CLUBS[intent.club], adjusted, rng());
+    const v = launchVelocity(loadout[intent.club], adjusted, rng());
     body.setLinvel(v, true);
 
     const trajectory: TrajectorySample[] = [];

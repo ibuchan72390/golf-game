@@ -1,6 +1,7 @@
 // src/sim/surfaces.test.ts
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initPhysics, resolveShot } from './shot';
+import { BASE_LOADOUT } from './clubs';
 import { flatHoleFile } from '../course/fixtures';
 import { SURFACE, type Surface } from '../course/format';
 import type { HoleState } from './types';
@@ -16,7 +17,7 @@ function rollFrom(fill: Surface): number {
     holeRadius: 0.15, strokes: 0, holedOut: false, hole, lie: fill,
   };
   // putter strike has no lie power penalty on green/fairway; use fairway-vs-green-vs-rough relative roll
-  const { newState } = resolveShot(state, { club: 'putter', aimDir: 0, power: 0.6, contactError: 0 });
+  const { newState } = resolveShot(state, { club: 'putter', aimDir: 0, power: 0.6, contactError: 0 }, BASE_LOADOUT);
   return Math.abs(newState.ballPos.z) - 20;
 }
 

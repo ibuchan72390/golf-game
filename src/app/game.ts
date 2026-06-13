@@ -1,9 +1,9 @@
 // src/app/game.ts
 import { resolveShot } from '../sim/shot';
-import { CLUBS } from '../sim/clubs';
+import { BASE_LOADOUT } from '../sim/clubs';
 import { meterMaxSpeed } from '../sim/powerScale';
 import { SURFACE, surfaceAt, type HoleFile, type Surface } from '../course/format';
-import type { ClubId, HoleState, ShotIntent, Vec3 } from '../sim/types';
+import type { ClubId, ClubLoadout, HoleState, ShotIntent, Vec3 } from '../sim/types';
 import { TrajectoryPlayback } from '../render/playback';
 
 export type GamePhase = 'aiming' | 'metering' | 'flying' | 'holed';
@@ -49,7 +49,7 @@ export class Game {
   private prevPos: Vec3 | null = null;
   private landed = false;
 
-  constructor(seed: number, holeFile: HoleFile, private view: GameView) {
+  constructor(seed: number, holeFile: HoleFile, private view: GameView, private readonly loadout: ClubLoadout = BASE_LOADOUT) {
     this.hole = makeHoleState(holeFile, seed);
     this.aimDir = this.aimToHole();
     this.syncView();
@@ -86,9 +86,9 @@ export class Game {
     if (this.phase === 'flying' || this.phase === 'holed') return;
     const scaled: ShotIntent = {
       ...intent,
-      power: intent.power * (meterMaxSpeed(intent.club, this.hole.lie, this.distToPin()) / CLUBS[intent.club].maxSpeed),
+      power: intent.power * (meterMaxSpeed(intent.club, this.hole.lie, this.distToPin()) / this.loadout[intent.club].maxSpeed),
     };
-    const result = resolveShot(this.hole, scaled);
+    const result = resolveShot(this.hole, scaled, this.loadout);
     this.pendingState = result.newState;
     this.playback = new TrajectoryPlayback(result.trajectory);
     this.prevPos = { ...this.hole.ballPos };

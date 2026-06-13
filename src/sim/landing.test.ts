@@ -7,6 +7,7 @@
 // the surface, within a bounded time.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initPhysics, resolveShot } from './shot';
+import { BASE_LOADOUT } from './clubs';
 import { generateHole } from '../course/generate';
 import { heightAt } from '../course/format';
 import { makeHoleState } from '../app/game';
@@ -21,7 +22,7 @@ const wedgeFull: ShotIntent = { club: 'sandWedge', aimDir: 0, power: 1, contactE
 
 function check(seed: number, intent: ShotIntent) {
   const hole = generateHole(seed, 4);
-  const { trajectory, newState } = resolveShot(makeHoleState(hole, seed), intent);
+  const { trajectory, newState } = resolveShot(makeHoleState(hole, seed), intent, BASE_LOADOUT);
 
   // Never tunnels below the terrain mid-flight. A high-speed impact may
   // penetrate for a frame or two before the solver recovers (invisible — the

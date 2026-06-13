@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initPhysics, resolveShot } from './shot';
+import { BASE_LOADOUT } from './clubs';
 import type { HoleState } from './types';
 import { flatHoleFile } from '../course/fixtures';
 import { SURFACE } from '../course/format';
@@ -28,7 +29,7 @@ describe('hole-out', () => {
       aimDir: 0,
       power: 0.25,
       contactError: 0,
-    });
+    }, BASE_LOADOUT);
     expect(newState.holedOut).toBe(true);
     expect(newState.ballPos).toEqual({ x: 0, y: 0, z: -150 });
     expect(newState.strokes).toBe(3);
@@ -40,7 +41,7 @@ describe('hole-out', () => {
       aimDir: 0,
       power: 1,
       contactError: 0,
-    });
+    }, BASE_LOADOUT);
     expect(newState.holedOut).toBe(false);
     expect(newState.ballPos.z).toBeLessThan(-150.5); // rolled past
   });
@@ -51,7 +52,7 @@ describe('hole-out', () => {
       aimDir: Math.PI / 4,
       power: 0.25,
       contactError: 0,
-    });
+    }, BASE_LOADOUT);
     expect(newState.holedOut).toBe(false);
   });
 });

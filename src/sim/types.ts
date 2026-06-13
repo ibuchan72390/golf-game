@@ -48,6 +48,18 @@ export interface HoleState {
   lie: Surface;
 }
 
+export interface ClubLevels {
+  power: number;
+  accuracy: number;
+  forgiveness: number;
+  spin: number;
+}
+
+/** Effective per-club stats for the current player (base + upgrades). */
+export type ClubLoadout = Record<ClubId, ClubStats>;
+
+export type ClubLevelMap = Record<ClubId, ClubLevels>;
+
 export interface TrajectorySample {
   /** seconds since strike */
   t: number;

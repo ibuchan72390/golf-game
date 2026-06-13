@@ -1,7 +1,9 @@
 // src/app/round.ts
 import { Game, type GameView } from './game';
+import { BASE_LOADOUT } from '../sim/clubs';
 import { makeScorecard, recordHole, type Scorecard } from '../sim/scorecard';
 import type { CourseFile } from '../course/format';
+import type { ClubLoadout } from '../sim/types';
 
 export type RoundPhase = 'playing' | 'hole-complete' | 'round-complete';
 
@@ -20,6 +22,7 @@ export class Round {
   constructor(
     public readonly course: CourseFile,
     private readonly view: RoundView,
+    private readonly loadout: ClubLoadout = BASE_LOADOUT,
   ) {
     this.card = makeScorecard(course.holes.map((h) => h.par));
     this.game = this.makeGame(0);
@@ -33,7 +36,7 @@ export class Round {
       setAimDir: (yaw) => this.view.setAimDir(yaw),
       frameBall: () => this.view.frameBall(),
       onLanding: (p) => this.view.onLanding(p),
-    });
+    }, this.loadout);
   }
 
   /** The app calls this once it has observed game.phase === 'holed' and finished the celebration. */

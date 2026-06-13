@@ -2,6 +2,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { strikeModifier } from './lies';
 import { initPhysics, resolveShot } from './shot';
+import { BASE_LOADOUT } from './clubs';
 import { flatHoleFile } from '../course/fixtures';
 import { SURFACE } from '../course/format';
 import type { HoleState, ShotIntent } from './types';
@@ -36,15 +37,15 @@ describe('resolveShot applies lie at strike', () => {
   }
   const swing: ShotIntent = { club: 'iron7', aimDir: 0, power: 1, contactError: 0 };
   it('the same swing travels measurably shorter from rough', () => {
-    const fairway = resolveShot(from(SURFACE.fairway), swing).newState.ballPos.z;
-    const rough = resolveShot(from(SURFACE.rough), swing).newState.ballPos.z;
+    const fairway = resolveShot(from(SURFACE.fairway), swing, BASE_LOADOUT).newState.ballPos.z;
+    const rough = resolveShot(from(SURFACE.rough), swing, BASE_LOADOUT).newState.ballPos.z;
     expect(Math.abs(rough)).toBeLessThan(Math.abs(fairway) * 0.9);
   });
   it('sand without wedge barely advances; wedge mostly recovers', () => {
-    const bare = resolveShot(from(SURFACE.sand), swing).newState.ballPos.z;
-    const wedge = resolveShot(from(SURFACE.sand), { ...swing, club: 'sandWedge' }).newState.ballPos.z;
-    const clean = resolveShot(from(SURFACE.fairway), { ...swing, club: 'sandWedge' }).newState.ballPos.z;
-    expect(Math.abs(bare)).toBeLessThan(Math.abs(resolveShot(from(SURFACE.fairway), swing).newState.ballPos.z) * 0.55);
+    const bare = resolveShot(from(SURFACE.sand), swing, BASE_LOADOUT).newState.ballPos.z;
+    const wedge = resolveShot(from(SURFACE.sand), { ...swing, club: 'sandWedge' }, BASE_LOADOUT).newState.ballPos.z;
+    const clean = resolveShot(from(SURFACE.fairway), { ...swing, club: 'sandWedge' }, BASE_LOADOUT).newState.ballPos.z;
+    expect(Math.abs(bare)).toBeLessThan(Math.abs(resolveShot(from(SURFACE.fairway), swing, BASE_LOADOUT).newState.ballPos.z) * 0.55);
     expect(Math.abs(wedge)).toBeGreaterThan(Math.abs(clean) * 0.7);
   });
 });

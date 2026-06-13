@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { initPhysics, resolveShot } from './shot';
+import { BASE_LOADOUT } from './clubs';
 import type { HoleState, ShotIntent } from './types';
 import { flatHoleFile } from '../course/fixtures';
 import { SURFACE } from '../course/format';
@@ -25,14 +26,14 @@ beforeAll(async () => {
 
 describe('resolveShot', () => {
   it('is deterministic: identical state + intent → identical trajectory', () => {
-    const a = resolveShot(flatHole(), fullDrive);
-    const b = resolveShot(flatHole(), fullDrive);
+    const a = resolveShot(flatHole(), fullDrive, BASE_LOADOUT);
+    const b = resolveShot(flatHole(), fullDrive, BASE_LOADOUT);
     expect(JSON.stringify(a.trajectory)).toEqual(JSON.stringify(b.trajectory));
     expect(a.newState).toEqual(b.newState);
   });
 
   it('a pure full drive flies far, straight, and comes to rest', () => {
-    const { newState, trajectory } = resolveShot(flatHole(), fullDrive);
+    const { newState, trajectory } = resolveShot(flatHole(), fullDrive, BASE_LOADOUT);
     expect(newState.ballPos.z).toBeLessThan(-120);
     expect(newState.ballPos.z).toBeGreaterThan(-320);
     expect(Math.abs(newState.ballPos.x)).toBeLessThan(0.5);
@@ -45,13 +46,13 @@ describe('resolveShot', () => {
 
   it('different seeds disperse a mishit differently', () => {
     const mishit: ShotIntent = { club: 'driver', aimDir: 0, power: 1, contactError: 0.8 };
-    const a = resolveShot({ ...flatHole(), seed: 1 }, mishit);
-    const b = resolveShot({ ...flatHole(), seed: 2 }, mishit);
+    const a = resolveShot({ ...flatHole(), seed: 1 }, mishit, BASE_LOADOUT);
+    const b = resolveShot({ ...flatHole(), seed: 2 }, mishit, BASE_LOADOUT);
     expect(a.newState.ballPos.x).not.toEqual(b.newState.ballPos.x);
   });
 
   it('increments strokes and preserves hole identity fields', () => {
-    const { newState } = resolveShot(flatHole(), fullDrive);
+    const { newState } = resolveShot(flatHole(), fullDrive, BASE_LOADOUT);
     expect(newState.seed).toBe(42);
     expect(newState.holePos).toEqual({ x: 0, y: 0, z: -150 });
   });

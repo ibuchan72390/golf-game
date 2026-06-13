@@ -1,4 +1,4 @@
-import type { ClubId, ClubStats, ShotIntent, Vec3 } from './types';
+import type { ClubId, ClubLevels, ClubLoadout, ClubStats, ShotIntent, Vec3 } from './types';
 
 const DEG2RAD = Math.PI / 180;
 
@@ -12,6 +12,28 @@ export const CLUBS: Record<ClubId, ClubStats> = {
   sandWedge:     { name: 'Sand W',     maxSpeed: 30, launchDeg: 48, accuracy: 0.06, forgiveness: 0.4,  spin: 0.8 },
   putter:        { name: 'Putter',     maxSpeed: 12, launchDeg: 0,  accuracy: 0.02, forgiveness: 0.5,  spin: 0 },
 };
+
+const POWER_PER_LEVEL = 1.6;      // m/s
+const ACCURACY_PER_LEVEL = 0.07;  // fractional tightening
+const FORGIVE_PER_LEVEL = 0.05;
+const SPIN_PER_LEVEL = 0.04;
+
+export function effectiveStats(club: ClubId, levels: ClubLevels): ClubStats {
+  const base = CLUBS[club];
+  return {
+    name: base.name,
+    launchDeg: base.launchDeg,
+    maxSpeed: base.maxSpeed + levels.power * POWER_PER_LEVEL,
+    accuracy: base.accuracy * Math.max(0.3, 1 - levels.accuracy * ACCURACY_PER_LEVEL),
+    forgiveness: Math.min(0.95, base.forgiveness + levels.forgiveness * FORGIVE_PER_LEVEL),
+    spin: Math.min(0.95, base.spin + levels.spin * SPIN_PER_LEVEL),
+  };
+}
+
+const ZERO: ClubLevels = { power: 0, accuracy: 0, forgiveness: 0, spin: 0 };
+export const BASE_LOADOUT: ClubLoadout = Object.fromEntries(
+  (Object.keys(CLUBS) as ClubId[]).map((id) => [id, effectiveStats(id, ZERO)]),
+) as ClubLoadout;
 
 /**
  * Initial ball velocity for a shot. `wobble` (0..1, from the seeded RNG)

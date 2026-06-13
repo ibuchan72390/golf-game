@@ -1,7 +1,7 @@
 // src/sim/powerScale.test.ts
 import { beforeAll, describe, expect, it } from 'vitest';
 import { meterMaxSpeed, PUTT_DECEL } from './powerScale';
-import { CLUBS } from './clubs';
+import { CLUBS, BASE_LOADOUT } from './clubs';
 import { SURFACE } from '../course/format';
 import { initPhysics, resolveShot } from './shot';
 import { flatHoleFile } from '../course/fixtures';
@@ -46,7 +46,7 @@ describe('meterMaxSpeed integration', () => {
       holeRadius: 0.15, strokes: 0, holedOut: false, hole, lie: SURFACE.green,
     };
     const v0 = meterMaxSpeed('putter', SURFACE.green, 6);
-    const { newState } = resolveShot(state, { club: 'putter', aimDir: 0, power: v0 / CLUBS.putter.maxSpeed, contactError: 0 });
+    const { newState } = resolveShot(state, { club: 'putter', aimDir: 0, power: v0 / CLUBS.putter.maxSpeed, contactError: 0 }, BASE_LOADOUT);
     const traveled = Math.abs(newState.ballPos.z) - 144;
     expect(traveled).toBeGreaterThan(6);
     expect(traveled).toBeLessThan(12);
