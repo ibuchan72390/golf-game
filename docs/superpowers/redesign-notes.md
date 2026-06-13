@@ -24,6 +24,12 @@ handoff so the whole surface gets a consistent art language in one pass.
   should style this into the club selector / HUD coherently (e.g. distance under each club
   chip, or a yardage band on the swing meter).
 
+### Swing animation (from 2026-06-13 playtest)
+- The user wants an animated swing (club/character motion on shot) rather than the
+  instant launch. Deferred to the redesign by the user's own call — a swing animation
+  wants the final art/rig and character model, so it should be designed and built as
+  part of the coherent visual pass, not bolted on now.
+
 ### Club selector appearance
 - The fix-now pass makes all 8 clubs reachable on mobile (functional). The redesign should
   decide the final selector treatment (scrollable rail vs. radial vs. compact grid) and style.
