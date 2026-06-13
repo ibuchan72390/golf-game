@@ -21,6 +21,11 @@ Play it: `https://<username>.github.io/golf-game/`
 
 See `docs/superpowers/specs/`. Load-bearing rules: `src/sim/` and `src/course/` never import DOM/Three and never call `Math.random()`/`Date.now()`; `resolveShot` is deterministic given `(state, intent, loadout)`; the `Round` orchestrates the single-hole `Game`; progression lives in the versioned save profile.
 
+## Multiplayer (Phase 1)
+Sign in and build a friend network. Disabled unless configured — see
+[docs/multiplayer-setup.md](docs/multiplayer-setup.md). Local UI dev without a
+backend: run `npm run dev` and open `/?mp=fake&user=you`.
+
 ## License
 
 MIT — see `LICENSE`.
