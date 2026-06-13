@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('hold-and-release prompts walk the stages', async ({ page }) => {
-  await page.goto('/?seed=42');
+  await page.goto('/?round=42');
   await page.waitForFunction(
     () => (window as unknown as { __golfTest?: { ready: boolean } }).__golfTest?.ready === true,
   );
