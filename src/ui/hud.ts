@@ -18,6 +18,7 @@ export interface Hud {
   onGear(cb: () => void): void;
   setLoadout(loadout: ClubLoadout): void;
   onAim(cb: (dir: number) => void): void;
+  destroy(): void;
 }
 
 const chip = 'background:rgba(38,50,56,.88);color:#fff;padding:7px 14px;border-radius:16px;font-size:14px;font-weight:600;';
@@ -28,7 +29,7 @@ export function createHud(root: HTMLElement): Hud {
     <div id="hud-lie" style="position:absolute;top:12px;left:50%;transform:translateX(-50%);${chip}color:#ffca28;"></div>
     <button id="hud-gear" style="position:absolute;top:12px;right:12px;${chip}border:none;pointer-events:auto;cursor:pointer;">⚙</button>
     <div id="hud-msg" style="position:absolute;top:38%;width:100%;text-align:center;color:#fff;font-size:46px;font-weight:800;text-shadow:0 3px 10px rgba(0,0,0,.45);display:none;"></div>
-    <div id="hud-clubs" style="position:absolute;bottom:84px;left:12px;display:flex;gap:6px;pointer-events:auto;"></div>
+    <div id="hud-clubs" style="position:absolute;bottom:84px;left:12px;right:150px;display:flex;flex-wrap:wrap;gap:6px;pointer-events:auto;justify-content:flex-start;"></div>
     <div id="hud-prompt" style="position:absolute;bottom:52px;left:12px;width:260px;text-align:center;color:#ffca28;font-size:13px;font-weight:800;letter-spacing:.05em;text-shadow:0 1px 4px rgba(0,0,0,.5);animation:hudpulse 1.2s ease-in-out infinite;"></div>
     <div id="hud-meter" style="position:absolute;bottom:18px;left:12px;width:260px;height:22px;background:#263238;border-radius:11px;border:2px solid rgba(255,255,255,.25);">
       <div id="hud-meter-band" style="position:absolute;left:44%;width:12%;top:0;height:100%;background:rgba(102,187,106,.55);border-radius:4px;display:none;"></div>
@@ -63,6 +64,8 @@ export function createHud(root: HTMLElement): Hud {
   }
   gear.addEventListener('click', () => gearCb());
 
+  const aimStopFns: Array<() => void> = [];
+
   function bindAim(btn: HTMLElement, dir: number): void {
     let timer: ReturnType<typeof setInterval> | null = null;
     const stop = () => {
@@ -71,6 +74,7 @@ export function createHud(root: HTMLElement): Hud {
         timer = null;
       }
     };
+    aimStopFns.push(stop);
     btn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -127,6 +131,9 @@ export function createHud(root: HTMLElement): Hud {
     },
     onAim(cb) {
       aimCb = cb;
+    },
+    destroy() {
+      for (const stop of aimStopFns) stop();
     },
   };
 }

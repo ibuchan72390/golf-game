@@ -352,6 +352,7 @@ async function boot() {
       teardown: () => {
         cancelAnimationFrame(raf);
         scene.dispose();
+        hud.destroy();
         holeHooks = null;
         window.removeEventListener('keydown', onKeydown);
         window.removeEventListener('keyup', onKeyup);
