@@ -8,15 +8,16 @@ handoff so the whole surface gets a consistent art language in one pass.
 
 ## Deferred items
 
-### Slope / terrain readability (from 2026-06-13 iPad playtest)
+### Slope / terrain readability (from 2026-06-13 iPad playtest) — HIGH PRIORITY
 - Players find it hard to read green and fairway slope. Requested treatment: a grid or
   "cross" overlay that deforms with the terrain to make slope direction/steepness legible
   at a glance — most important on the green during putting.
 - Redesign should own this as a holistic visual: e.g. a contour/grid overlay on greens,
   possibly slope-shaded coloring or directional arrows, styled to match the final art.
-- NOTE: a minimal *functional* slope indicator may be added before the redesign if putting
-  feel demands it (tracked separately as a functional fix, not here). This note covers the
-  polished, designed version.
+- DECISION (2026-06-13): deferred ENTIRELY to the redesign — no interim functional stopgap.
+  Putting stays harder-than-ideal to read until then; accepted to avoid throwaway work and
+  let the redesign own the slope visualization coherently. Treat as a high-priority redesign
+  item since it affects a core mechanic (putting).
 
 ### Club distance readout styling
 - The fix-now pass adds a basic approximate-carry readout per club (functional). The redesign
