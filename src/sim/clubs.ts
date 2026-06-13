@@ -1,5 +1,22 @@
 import type { ClubId, ClubLevels, ClubLoadout, ClubStats, ShotIntent, Vec3 } from './types';
 
+/**
+ * Approximate full-power total distance (carry + roll) on a flat fairway, per club,
+ * for the HUD readout. These base values are measured from the deterministic sim;
+ * carry.test.ts asserts they stay within 15% of resolveShot, so if physics is
+ * retuned the test flags drift. Display value scales linearly with the club's
+ * effective max speed, so it rises with Power upgrades (approximate by design).
+ */
+export const BASE_CARRY: Record<ClubId, number> = {
+  driver: 163, wood3: 146, iron5: 119, iron7: 113, iron9: 86, pitchingWedge: 69, sandWedge: 51, putter: 0,
+};
+
+export function approxCarry(id: ClubId, stats: ClubStats): number {
+  const base = BASE_CARRY[id];
+  if (base === 0) return 0;
+  return base * (stats.maxSpeed / CLUBS[id].maxSpeed);
+}
+
 const DEG2RAD = Math.PI / 180;
 
 export const CLUBS: Record<ClubId, ClubStats> = {

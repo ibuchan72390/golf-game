@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CLUBS, launchVelocity, effectiveStats, BASE_LOADOUT } from './clubs';
+import { CLUBS, launchVelocity, effectiveStats, BASE_LOADOUT, approxCarry } from './clubs';
 
 describe('CLUBS', () => {
   it('has eight clubs', () => {
@@ -55,5 +55,21 @@ describe('launchVelocity', () => {
   it('putter launches flat', () => {
     const v = launchVelocity(CLUBS.putter, { club: 'putter', aimDir: 0, power: 0.5, contactError: 0 }, 1);
     expect(v.y).toBeCloseTo(0, 6);
+  });
+});
+
+describe('approxCarry', () => {
+  it('orders clubs by distance (driver > 7 iron > sand wedge) and putter is ~0', () => {
+    const d = approxCarry('driver', CLUBS.driver);
+    const i7 = approxCarry('iron7', CLUBS.iron7);
+    const sw = approxCarry('sandWedge', CLUBS.sandWedge);
+    expect(d).toBeGreaterThan(i7);
+    expect(i7).toBeGreaterThan(sw);
+    expect(approxCarry('putter', CLUBS.putter)).toBeLessThan(20);
+  });
+  it('rises when Power is upgraded', () => {
+    const base = approxCarry('driver', CLUBS.driver);
+    const up = approxCarry('driver', effectiveStats('driver', { power: 6, accuracy: 0, forgiveness: 0, spin: 0 }));
+    expect(up).toBeGreaterThan(base);
   });
 });
