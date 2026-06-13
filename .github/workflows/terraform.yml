@@ -1,0 +1,23 @@
+name: Terraform
+
+on:
+  push:
+    branches: [main]
+    paths: ['terraform/**', '.github/workflows/terraform.yml']
+  pull_request:
+    paths: ['terraform/**', '.github/workflows/terraform.yml']
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: fmt
+        run: terraform -chdir=terraform fmt -check -recursive
+      - name: init + validate module (no backend, no credentials)
+        run: |
+          terraform -chdir=terraform/modules/golf-env init -backend=false -input=false
+          terraform -chdir=terraform/modules/golf-env validate
