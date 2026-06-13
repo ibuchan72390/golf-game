@@ -82,3 +82,34 @@ resource "terraform_data" "schema_push" {
 
   depends_on = [supabase_project.this]
 }
+
+# --- Auth0 SPA application --------------------------------------------------
+resource "auth0_client" "spa" {
+  name            = "golf-game-${var.env}"
+  app_type        = "spa"
+  oidc_conformant = true
+  grant_types     = ["authorization_code", "refresh_token"]
+
+  callbacks           = var.app_urls
+  allowed_logout_urls = var.app_urls
+  web_origins         = var.app_urls
+  allowed_origins     = var.app_urls
+}
+
+# Per-env Google social connection, enabled only for this env's client. Empty
+# client_id/secret falls back to Auth0 dev keys (fine for non-production use).
+resource "auth0_connection" "google" {
+  name     = "golf-google-${var.env}"
+  strategy = "google-oauth2"
+
+  options {
+    client_id     = var.google_oauth_client_id
+    client_secret = var.google_oauth_client_secret
+    scopes        = ["email", "profile"]
+  }
+}
+
+resource "auth0_connection_clients" "google" {
+  connection_id   = auth0_connection.google.id
+  enabled_clients = [auth0_client.spa.client_id]
+}
