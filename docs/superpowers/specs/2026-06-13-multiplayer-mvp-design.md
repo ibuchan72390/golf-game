@@ -103,6 +103,10 @@ New screens follow the existing Arcade DOM-overlay style. **Final visual polish 
 
 **QA-environment evolution (designed-for, not built now).** Because config is environment-aware and the smoke suite is environment-parameterized, "eventually" becomes: stand up a **second (free) Supabase project + Auth0 connection**, deploy a QA build of the client at them, run the smoke suite against QA, and promote to prod only when green. We do not build that pipeline now — we just ensure nothing hard-codes prod and the smoke suite is parameterized, so standing up QA later is config + a workflow, not a refactor. (QA Supabase + Auth0 stay on free tiers — still ~$0.)
 
+**Maturation of the auth seam (later phase).** The MVP's non-interactive token grant is the starter form. When QA matures, replace it with a dedicated **Auth0 machine-to-machine application using the Client Credentials grant**, plus (if needed for user-context flows) a **custom impersonation scheme** so the smoke suite can act as specific seeded test users without storing their passwords. This keeps the `AuthProvider` test seam stable (it still just accepts an injected token) while the *way the token is obtained* hardens.
+
+**Infrastructure as code (later phase).** When we stand up multiple environments, introduce **Terraform with a root-module pattern**: a single parameterized template (Supabase project + Auth0 tenant/application/connections + the M2M client + GitHub secrets wiring) instantiated per environment (dev / qa / prod) from one source of truth. This is explicitly deferred — the MVP provisions Supabase/Auth0 manually with a setup doc — but environment-aware config and the parameterized smoke suite are chosen now so the later Terraform-seeded multi-environment flow is additive, not a rewrite.
+
 ## 8. Explicitly out of scope (later phases)
 
 - The standalone, Dockerized, **reusable multi-app social service** with bans / permissions / custom multi-app schema. (The MVP friend graph is structured to be extractable into it.)
@@ -111,4 +115,5 @@ New screens follow the existing Arcade DOM-overlay style. **Final visual polish 
 - **Turn-based / tournament mode** and a "standard bag" fairness option.
 - **Cinematic replay** of opponents' shot trajectories (MVP shows position markers only).
 - **Spectators** and advanced reconnection/resume robustness (basic rejoin-by-code only).
+- **Full QA pipeline & IaC:** dedicated Auth0 M2M Client-Credentials app + custom impersonation scheme, and **Terraform root-module** provisioning of multiple environments. MVP uses a non-interactive token grant + manual setup doc; environment-aware config is chosen now so these are additive later (§7).
 - **Visual polish** of the new screens (→ redesign phase).
