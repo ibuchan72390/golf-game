@@ -1,6 +1,6 @@
-supabase_organization_id = "REPLACE_WITH_SUPABASE_ORG_SLUG"
-supabase_region          = "us-east-1"
-auth0_domain             = "REPLACE_WITH_TENANT.us.auth0.com"
+supabase_organization_id = "bspfrnyivapfpkkgrcjq"
+supabase_region          = "us-west-1"
+auth0_domain             = "ian-golf-game-prod.us.auth0.com"
 github_owner             = "ibuchan72390"
 github_repository        = "golf-game"
 app_urls = [
