@@ -7,15 +7,11 @@ needs no setup and CI passes without secrets.
 
 Two paths:
 
-- **Terraform (recommended, reproducible):** `terraform/` provisions the Supabase
-  project, Auth0 app, schema, and GitHub `VITE_*` secrets for `prod` (and `qa`)
-  from one reusable module. See [`terraform/README.md`](../terraform/README.md)
-  for the one-time bootstrap + `terraform apply`. After `apply`, just trigger a
-  deploy.
+- **Terraform + CI (recommended):** `terraform/` provisions Supabase + Auth0 per environment via a gated GitHub Actions pipeline (qa auto, prod approval). The public `VITE_*` build values are then set once as repo **Variables** from `terraform output`. See [`terraform/README.md`](../terraform/README.md).
 - **Manual (below):** create the Supabase + Auth0 projects by hand and
   `gh secret set` the values. Use this only if you're not using Terraform.
 
-## Required env (`.env`, or GitHub Actions secrets at build time)
+## Required env (`.env` locally, or GitHub repo **Variables** at build time)
 
 | Var | Source |
 | --- | --- |
