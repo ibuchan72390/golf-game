@@ -25,10 +25,6 @@ variable "supabase_db_password" {
 }
 variable "auth0_domain" { type = string }
 variable "app_urls" { type = list(string) }
-variable "oidc_audience" {
-  type    = string
-  default = ""
-}
 
 module "env" {
   source = "../../modules/golf-env"
@@ -39,7 +35,6 @@ module "env" {
   supabase_db_password     = var.supabase_db_password
   auth0_domain             = var.auth0_domain
   app_urls                 = var.app_urls
-  oidc_audience            = var.oidc_audience
   repo_root                = abspath("${path.root}/../../..")
 }
 

@@ -55,9 +55,3 @@ variable "repo_root" {
   description = "Absolute path to the repository root (for migration files / supabase db push)."
   type        = string
 }
-
-variable "oidc_audience" {
-  description = "Optional OIDC audience; empty string omits it."
-  type        = string
-  default     = ""
-}

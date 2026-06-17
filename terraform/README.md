@@ -3,18 +3,8 @@
 Reusable `modules/golf-env` instantiated per environment (`environments/prod`,
 `environments/qa`) on HCP Terraform. Provisions, per environment: a Supabase
 project (+ third-party-auth trust of the Auth0 issuer + schema via
-`supabase db push`), an Auth0 SPA app (+ Google login), and the `VITE_*` GitHub
-Actions secrets (prod → repo secrets; qa → the `qa` GitHub Environment).
-
-## One-time manual bootstrap (cannot be Terraformed — these ARE the credentials TF uses)
-
-1. **HCP Terraform:** create an account/org; create workspaces `golf-prod` and
-   `golf-qa` set to **Local** execution mode. Run `terraform login`.
-2. **Supabase:** create a personal access token; note your org slug.
-3. **Auth0:** create a Management API **M2M application** with management scopes
-   (create/read clients, connections); note domain / client id / client secret.
-4. **GitHub:** create a PAT with `repo` + secrets-admin scope.
-5. Install the **Supabase CLI** and **Terraform >= 1.6** locally.
+`supabase db push`) and an Auth0 SPA app (+ Google login). The public `VITE_*`
+build values are delivered separately as GitHub repository Variables (see below).
 
 ## Pipeline-driven provisioning (primary)
 
