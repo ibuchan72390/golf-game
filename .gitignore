@@ -9,6 +9,8 @@ playwright-report/
 .env
 .env.local
 .env.*.local
+# One-time bootstrap helper holding real credentials — never commit.
+seed-secrets.sh
 
 # Terraform
 **/.terraform/*
