@@ -1,23 +1,155 @@
 name: Terraform
 
 on:
+  pull_request:
+    paths: ['terraform/**', '.github/workflows/terraform.yml', '.checkov.yaml']
   push:
     branches: [main]
-    paths: ['terraform/**', '.github/workflows/terraform.yml']
-  pull_request:
-    paths: ['terraform/**', '.github/workflows/terraform.yml']
+    paths: ['terraform/**', '.github/workflows/terraform.yml', '.checkov.yaml']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to apply'
+        type: choice
+        options: [qa, prod]
+        default: qa
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  TF_CLOUD_ORGANIZATION: ibuchan-org
+  TF_IN_AUTOMATION: "1"
 
 jobs:
-  validate:
+  checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.8"
+          terraform_wrapper: false
       - name: fmt
         run: terraform -chdir=terraform fmt -check -recursive
-      - name: init + validate module (no backend, no credentials)
+      - name: validate module
         run: |
           terraform -chdir=terraform/modules/golf-env init -backend=false -input=false
           terraform -chdir=terraform/modules/golf-env validate
+      - name: Checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: terraform
+          config_file: .checkov.yaml
+          quiet: true
+
+  plan-qa:
+    if: github.event_name == 'pull_request'
+    needs: checks
+    runs-on: ubuntu-latest
+    environment: qa
+    env:
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+      AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+      AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+      TF_VAR_supabase_db_password: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: true
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: init
+        run: terraform -chdir=terraform/environments/qa init -input=false
+      - name: plan
+        id: plan
+        run: terraform -chdir=terraform/environments/qa plan -no-color -input=false
+        continue-on-error: true
+      - name: comment plan
+        uses: actions/github-script@v7
+        env:
+          PLAN: ${{ steps.plan.outputs.stdout }}
+          OUTCOME: ${{ steps.plan.outcome }}
+        with:
+          script: |
+            const marker = '<!-- tf-plan-qa -->';
+            const plan = (process.env.PLAN || '').substring(0, 60000);
+            const body = `${marker}\n#### Terraform Plan (qa) \`${process.env.OUTCOME}\`\n\n<details><summary>Show plan</summary>\n\n\`\`\`\n${plan}\n\`\`\`\n\n</details>`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+      - name: fail if plan errored
+        if: steps.plan.outcome == 'failure'
+        run: |
+          echo "terraform plan failed (see PR comment)"; exit 1
+
+  apply-qa:
+    if: (github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && inputs.environment == 'qa')
+    needs: checks
+    runs-on: ubuntu-latest
+    environment: qa
+    concurrency:
+      group: tf-apply-qa
+      cancel-in-progress: false
+    env:
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+      AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+      AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+      TF_VAR_supabase_db_password: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: terraform -chdir=terraform/environments/qa init -input=false
+      - run: terraform -chdir=terraform/environments/qa apply -auto-approve -input=false
+
+  apply-prod:
+    needs: [checks, apply-qa]
+    if: |
+      always() &&
+      needs.checks.result == 'success' &&
+      (needs.apply-qa.result == 'success' || needs.apply-qa.result == 'skipped') &&
+      ((github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && inputs.environment == 'prod'))
+    runs-on: ubuntu-latest
+    environment: prod
+    concurrency:
+      group: tf-apply-prod
+      cancel-in-progress: false
+    env:
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+      AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+      AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
+      TF_VAR_supabase_db_password: ${{ secrets.SUPABASE_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+          terraform_wrapper: false
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: terraform -chdir=terraform/environments/prod init -input=false
+      - run: terraform -chdir=terraform/environments/prod plan -input=false
+      - run: terraform -chdir=terraform/environments/prod apply -auto-approve -input=false

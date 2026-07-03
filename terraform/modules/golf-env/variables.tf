@@ -10,12 +10,12 @@ variable "supabase_organization_id" {
 }
 
 variable "supabase_region" {
-  description = "Supabase project region (e.g. us-east-1)."
+  description = "Supabase project region (e.g. us-west-1)."
   type        = string
 }
 
 variable "supabase_db_password" {
-  description = "Postgres password for the new project. Supply via an HCP sensitive workspace variable (TF_VAR_supabase_db_password)."
+  description = "Postgres password for the new project. Supply via the env-scoped secret SUPABASE_DB_PASSWORD (TF_VAR_supabase_db_password)."
   type        = string
   sensitive   = true
 }
@@ -44,32 +44,14 @@ variable "google_oauth_client_id" {
 }
 
 variable "google_oauth_client_secret" {
-  description = "Optional Google OAuth client secret; empty string uses Auth0 dev keys. Supply via an HCP sensitive variable."
+  description = "Optional Google OAuth client secret; empty string uses Auth0 dev keys."
   type        = string
   default     = ""
   sensitive   = true
 }
 
-# --- GitHub -----------------------------------------------------------------
-variable "github_repository" {
-  description = "GitHub repository name that consumes the VITE_* secrets."
-  type        = string
-}
-
-variable "github_secret_environment" {
-  description = "Empty string => write repo-level Actions secrets (prod). Non-empty => create that GitHub Environment and write its secrets (qa)."
-  type        = string
-  default     = ""
-}
-
 # --- Misc -------------------------------------------------------------------
 variable "repo_root" {
-  description = "Absolute path to the repository root (for migration files / supabase db push). Passed by the env wrapper as abspath of the repo root."
+  description = "Absolute path to the repository root (for migration files / supabase db push)."
   type        = string
-}
-
-variable "oidc_audience" {
-  description = "Optional OIDC audience; empty string omits the VITE_OIDC_AUDIENCE secret."
-  type        = string
-  default     = ""
 }

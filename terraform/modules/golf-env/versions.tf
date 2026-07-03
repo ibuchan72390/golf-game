@@ -9,9 +9,5 @@ terraform {
       source  = "auth0/auth0"
       version = "~> 1.0"
     }
-    github = {
-      source  = "integrations/github"
-      version = "~> 6.0"
-    }
   }
 }

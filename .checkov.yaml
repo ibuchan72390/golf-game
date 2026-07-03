@@ -1,0 +1,8 @@
+# Checkov configuration for the Terraform under terraform/.
+# Hard-fail (soft-fail is off by default). Any intentional exception goes in
+# skip-check below WITH a comment explaining why.
+framework:
+  - terraform
+directory:
+  - terraform
+skip-check: []
